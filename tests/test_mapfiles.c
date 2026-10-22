@@ -88,6 +88,7 @@ static void prepare(void)
     reads=opens=closes=prompts=draws=diskCount=0;
     TilesetId=Tileset_BattleTech; OverheadMapActive=FALSE; StarportCountdown=0;
     failFirst=0;
+    HoldRickAtlasUntilLoungeConversation=FALSE;
     interactionBlocked=FALSE;
 }
 int main(int argc,char **argv)
@@ -117,10 +118,29 @@ int main(int argc,char **argv)
         uint8_t destination=npc->waypointPair&15;
         assert(npc->movementDelay==1 && npc->destinationX==40+destination);
         assert(npc->currentPositionY==80+destination);
-        assert(CombatantPackedX[16+i]==npc->destinationX);
+        assert(CombatantPackedX[16+i]==0 && CombatantPackedY[16+i]==0);
         assert(CombatantAnimationDirection[16+i]==255 && CombatantSpriteFrame[16+i]==16);
         assert(npc->remainingNativeRecord[0]==(i==7?1:0xCC));
     }
+    /* Reloading a pending lounge conversation must not randomize Rick into
+     * another building, or leave him blocking his random destination. */
+    prepare(); HoldRickAtlasUntilLoungeConversation=1;
+    RoamingMapNpcs[0].waypointPair=0x35;
+    RoamingMapNpcs[0].movementDelay=254;
+    DOS_Load_Map_Files(4,Map_Citadel);
+    assert(RoamingMapNpcs[0].waypointPair==NpcFirstStagingWaypoints);
+    assert(RoamingMapNpcs[0].movementDelay==NpcStagingDelay);
+    assert(RoamingMapNpcs[0].currentPositionX==47 && RoamingMapNpcs[0].currentPositionY==87);
+    assert(RoamingMapNpcs[0].destinationX==40 && RoamingMapNpcs[0].destinationY==80);
+    assert(CombatantPackedX[16]==0 && CombatantPackedY[16]==0);
+    /* Repeat rebuilds and other maps must not lose the hold or stage Rick
+     * at a different town's lounge. */
+    DOS_Load_Map_Files(4,Map_Citadel);
+    assert(RoamingMapNpcs[0].waypointPair==NpcFirstStagingWaypoints);
+    assert(HoldRickAtlasUntilLoungeConversation==1);
+    prepare(); HoldRickAtlasUntilLoungeConversation=1;
+    DOS_Load_Map_Files(4,Map_StarLeagueCache);
+    assert(RoamingMapNpcs[0].movementDelay==0 && CombatantPackedX[16]==0);
     prepare(); OverheadMapActive=TRUE; StarportCountdown=1;
     uint8_t randomLow=RandomByteLow,randomMiddle=RandomByteMiddle,randomHigh=RandomByteHigh;
     DOS_Load_Map_Files(0,Map_Starport);

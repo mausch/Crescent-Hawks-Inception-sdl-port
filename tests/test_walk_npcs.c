@@ -87,8 +87,13 @@ int main(void) {
     check(AnimatedMapTileFrame==0); AnimatedMapTileId[0]=original;
 
     prepareNpcs(); RoamingMapNpcs[0].movementDelay=1; HoldRickAtlasUntilLoungeConversation=1;
+    CombatantPackedX[16]=0x0221; CombatantPackedY[16]=0x3022;
     Update_Roaming_Map_Npcs();
     check(RoamingMapNpcs[0].movementDelay==254 && positions==0 && !RoamingNpcVisibleOnScreen[0]);
+    check(CombatantPackedX[16]==0 && CombatantPackedY[16]==0);
+    prepareNpcs(); CombatantPackedX[17]=0x0221; CombatantPackedY[17]=0x3022;
+    Update_Roaming_Map_Npcs();
+    check(RoamingMapNpcs[1].movementDelay==1 && CombatantPackedX[17]==0 && CombatantPackedY[17]==0);
     prepareNpcs(); RoamingMapNpcs[1].movementDelay=1; RoamingMapNpcs[1].waypointPair=0x34;
     MapInteractablePositionX[3]=0x0222; MapInteractablePositionY[3]=0x3022;
     Update_Roaming_Map_Npcs();

@@ -4,6 +4,13 @@ All notable preservation releases are documented here. This project uses
 semantic release numbers for its own reconstructed source and host layer; they
 do not identify an original DOS release.
 
+## Unreleased
+
+- Fixed Rick Atlas remaining in the weapons shop instead of meeting Jason in
+  the lounge after loading a save. Characters waiting inside buildings no longer
+  invisibly block entrances and cause other characters to circle outside forever.
+  These fixes correct bugs inherited from the original DOS game.
+
 ## 1.1.0 - 2026-10-20
 
 - Added Linux x86-64 downloads alongside the Windows x64 runtime package.

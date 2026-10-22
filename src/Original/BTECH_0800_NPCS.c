@@ -11,6 +11,9 @@ void Update_Roaming_Map_Npcs(void)
         uint16_t actor=Enemy_Infantry_CombatantId_Range_First+slot;
         RoamingNpcVisibleOnScreen[slot]=FALSE;
         if (npc->movementDelay) {
+            /* Intentional gameplay fix: staged/waiting NPCs are not drawn
+             * and must not leave invisible collision blockers behind. */
+            CombatantPackedX[actor]=0; CombatantPackedY[actor]=0;
             if (!slot && HoldRickAtlasUntilLoungeConversation) npc->movementDelay=255;
             --npc->movementDelay;
             if (!npc->movementDelay) {

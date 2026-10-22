@@ -73,11 +73,25 @@ void DOS_Load_Map_Files(uint16_t mapGridSlot,uint16_t mapNumber)
         npc->destinationX=MapInteractablePositionX[destination];
         npc->destinationY=MapInteractablePositionY[destination];
         npc->currentPositionX=npc->destinationX;
-        CombatantPackedX[combatantId]=npc->currentPositionX;
+        /* Intentional gameplay fix: delayed NPCs are indoors, not invisible
+         * collision occupants at their next destination (native 2DA8..320A). */
+        CombatantPackedX[combatantId]=0;
         npc->currentPositionY=npc->destinationY;
-        CombatantPackedY[combatantId]=npc->currentPositionY;
+        CombatantPackedY[combatantId]=0;
         CombatantAnimationDirection[combatantId]=AnimationDirection_Refresh;
         CombatantSpriteFrame[combatantId]=RoamingNpcInitialFrame;
+        /* Load_Game rebuilds maps after reading the save, randomizing these
+         * records. Preserve TRAINING.BLD's pending lounge rendezvous instead
+         * of holding Rick forever at a random building. Consume RNG above as
+         * before; the other NPC routes remain unchanged. */
+        if (mapNumber==Map_Citadel && slot==0 && HoldRickAtlasUntilLoungeConversation) {
+            npc->waypointPair=NpcFirstStagingWaypoints;
+            npc->movementDelay=NpcStagingDelay;
+            npc->currentPositionX=MapInteractablePositionX[NpcLoungeBuildingSlot];
+            npc->currentPositionY=MapInteractablePositionY[NpcLoungeBuildingSlot];
+            npc->destinationX=MapInteractablePositionX[0];
+            npc->destinationY=MapInteractablePositionY[0];
+        }
         if ((int16_t)mapNumber>Map_LastVillage) {
             npc->movementDelay=0;
             CombatantPackedY[combatantId]=0;
