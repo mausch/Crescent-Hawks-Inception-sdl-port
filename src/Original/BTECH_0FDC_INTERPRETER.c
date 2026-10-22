@@ -68,7 +68,23 @@ void Execute_Bld_Bytecode(uint8_t *payload)
             int16_t index=(int8_t)payload[cursor++];
             WorldMapState.bytes[offsetof(WorldMapStateStorage,fields.persistent)+index]=payload[cursor++]; break;
         }
-        case Bld_CallAction: Citadel_Building_Dialogs((uint16_t)(int16_t)(int8_t)payload[cursor++]); break;
+        case Bld_CallAction: {
+            uint16_t action=(uint16_t)(int16_t)(int8_t)payload[cursor++];
+            Citadel_Building_Dialogs(action);
+            /* Extra: the original shop branches on the package byte through
+             * a nine-entry description table. Custom packages have their own
+             * descriptions and purchase prompt; never index that table with
+             * custom IDs (which can jump into the Rex conversation). Complete
+             * the purchase here, then take the shop's normal no-work path. */
+            if(action==CitadelAction_ModifyMech && MechModificationWorkflowEnabled &&
+                (SelectedMechUpgradePackage==MECH_CHAMELEON_FIELD_CONVERSION ||
+                 SelectedMechUpgradePackage==MECH_CHAMELEON_PPC_CONVERSION ||
+                 SelectedMechUpgradePackage==MECH_CHAMELEON_STRUCTURE_RESTORATION)) {
+                Citadel_Building_Dialogs(CitadelAction_UpgradeMech);
+                MechModificationWorkflowEnabled=FALSE;
+            }
+            break;
+        }
         case Bld_YesNoBranch: branch=Prompt_Yes_No(TRUE)!=0; goto ResolveBranch;
         case Bld_BranchIfStateNonzero: {
             int16_t index=(int8_t)payload[cursor++];

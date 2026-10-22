@@ -6,6 +6,11 @@ enum {
     WaspStageTwoFirstNewLaserOrdinal=2, WaspStageTwoNewLaserOrdinalLimit=5
 };
 
+/* Standard 50-ton structure, in native location order. The original trainer
+ * template remains unchanged; restoration is a custom, paid conversion. */
+static const uint8_t ChameleonRestoredStructure[MechStructureLocationCount] =
+    {8,12,12,3,16,8,12,12};
+
 /* Sol: Critical indices below denote confirmed physical entries in the native
  * 35-byte block, not certified anatomical groups (A-005 remains open).
  * Preserved slot ordinals identify the exact original mutations. */
@@ -24,9 +29,13 @@ void Mechlube_Modify_Mech()
 
 	Mech* selectedMech = &Mechs[SelectedMechId];
 
-	// Sol: +7Ch is the upgrade-level flag byte. Value 3 means both upgrade
-	// Sol: stages are installed; this is not a Chameleon chassis-ID check.
-	if (selectedMech->upgradeLevelFlags == MechUpgrade_BothStagesInstalled)
+	// Sol: +7Ch is the upgrade-level flag byte. Original chassis finish at 3;
+	// Extra: the Chameleon's three cumulative stages use 1, 3, and 7.
+	uint8_t stage = selectedMech->upgradeLevelFlags;
+	uint8_t chameleon = selectedMech->upgradePackageBase == MechUpgrade_ChameleonBase;
+	if ((!chameleon && stage == MechUpgrade_BothStagesInstalled) ||
+		(chameleon && stage != 0 && stage != MechUpgrade_ChameleonStructureInstalled &&
+		 stage != MechUpgrade_ChameleonCoolingInstalled))
 	{
 		Draw_Top_Graphic_Sidebar();
 		Display_Text_From_Memory((uint8_t *)"Hey, that thing is already pretty powerful.  We can't modify that any further."); //3EDB:1D33
@@ -45,6 +54,25 @@ void Mechlube_Modify_Mech()
 	TextColumn = 0x0000;
 
 	uint16_t selectedUpgradePackage = selectedMech->upgradePackageBase;
+
+	/* Extra: custom conversions; keep original IDs and table intact. */
+	if (selectedUpgradePackage == MechUpgrade_ChameleonBase)
+	{
+		if (stage == MechUpgrade_ChameleonCoolingInstalled) {
+			SelectedMechUpgradePackage = MECH_CHAMELEON_PPC_CONVERSION;
+			MechUpgradeCost = MechUpgrade_ChameleonPPCCost;
+			Display_Text_From_Memory((uint8_t *)"We've got a particle cannon in the back that'll make those Kuritans sit up and take notice. We'll pull your large laser and all four small ones to fit it. You keep the two medium lasers, jump jets, and extra cooling. This won't be a trainer anymore, kid. Just watch that heat gauge--we're installing a cannon, not a miracle.");
+		} else if (stage == MechUpgrade_ChameleonStructureInstalled) {
+			SelectedMechUpgradePackage = MECH_CHAMELEON_FIELD_CONVERSION;
+			MechUpgradeCost = MechUpgrade_ChameleonCost;
+			Display_Text_From_Memory((uint8_t *)"Still hauling those training machine guns around? We can pull both guns and their ammo and fit two more heat sinks. Keep your lasers, lose some sweat.");
+		} else {
+			SelectedMechUpgradePackage = MECH_CHAMELEON_STRUCTURE_RESTORATION;
+			MechUpgradeCost = MechUpgrade_ChameleonStructureCost;
+			Display_Text_From_Memory((uint8_t *)"Hey, that's weird. This thing's still set up as an academy trainer. Nice armor, but I wouldn't trust what's underneath in a firefight. We'll restore the internal frame to proper fifty-ton specifications. Same weapons, same armor, same jump jets--only now you've got something worth bringing home.");
+		}
+		return;
+	}
 
 	// Sol: Base values 0..3 select the four supported chassis packages.
 	// Sol: Exact level value 1 selects their second-stage entries 4..7.
@@ -79,7 +107,21 @@ void Mechlube_Modify_Mech()
 // Sol: Outline: Select the supported package, check funds and prerequisites, and modify the mech's statistics and equipment.
 void Mechlube_Upgrade_Mech()
 {
+	if (SelectedMechUpgradePackage == MECH_CHAMELEON_STRUCTURE_RESTORATION &&
+		(Mechs[SelectedMechId].upgradePackageBase != MechUpgrade_ChameleonBase ||
+		 Mechs[SelectedMechId].upgradeLevelFlags != 0))
+		return;
+	/* Extra: do not charge for a repeated field conversion, even if called
+	 * directly with a stale package selection after the shop rejects it. */
+	if (SelectedMechUpgradePackage == MECH_CHAMELEON_FIELD_CONVERSION &&
+		(Mechs[SelectedMechId].upgradePackageBase != MechUpgrade_ChameleonBase ||
+		 Mechs[SelectedMechId].upgradeLevelFlags != MechUpgrade_ChameleonStructureInstalled))
+		return;
 	// Sol: Bind native3092 storage; signed WORD cost remains sign-extended.
+	if (SelectedMechUpgradePackage == MECH_CHAMELEON_PPC_CONVERSION &&
+		(Mechs[SelectedMechId].upgradePackageBase != MechUpgrade_ChameleonBase ||
+		 Mechs[SelectedMechId].upgradeLevelFlags != MechUpgrade_ChameleonCoolingInstalled))
+		return;
 	// Sol: All eight package mutations and unsigned DWORD affordability checked.
 	Display_Text_From_Memory((uint8_t *)"\r\rAll for the incredibly low price of only "); //3EDB:1D9C
 	Display_Text_Dynamic_Value((uint16_t)MechUpgradeCost);
@@ -125,6 +167,39 @@ void Mechlube_Upgrade_Mech()
 			Mech* selectedMech = &Mechs[SelectedMechId];
 
 			Display_Text_CBill_Balance();
+			if (SelectedMechUpgradePackage == MECH_CHAMELEON_STRUCTURE_RESTORATION)
+			{
+				for (uint16_t location = 0; location < MechStructureLocationCount; ++location) {
+					selectedMech->currentStructure[location] = ChameleonRestoredStructure[location];
+					selectedMech->maxStructure[location] = ChameleonRestoredStructure[location];
+				}
+				selectedMech->upgradeLevelFlags = MechUpgrade_ChameleonStructureInstalled;
+			}
+			if (SelectedMechUpgradePackage == MECH_CHAMELEON_FIELD_CONVERSION)
+			{
+				/* Extra: the last two weapons are the stock machine guns.
+				 * Their replacement sinks are normal damageable components. */
+				selectedMech->criticalSlots[32] = Heat_Sink;
+				selectedMech->criticalSlots[33] = Heat_Sink;
+				selectedMech->currentAmmo[7] = selectedMech->currentAmmo[8] = 0;
+				selectedMech->maxAmmo[7] = selectedMech->maxAmmo[8] = 0;
+				selectedMech->upgradeLevelFlags = MechUpgrade_ChameleonCoolingInstalled;
+			}
+			if (SelectedMechUpgradePackage == MECH_CHAMELEON_PPC_CONVERSION)
+			{
+				/* Each weapon-valued byte is a complete firing entry here.
+				 * Preserve medium-laser state (old ordinals 0 and 6). */
+				selectedMech->criticalSlots[14] = WeaponIndex_PPC + MechComponentToWeaponRecordBias;
+				selectedMech->criticalSlots[7] = selectedMech->criticalSlots[8] = 0;
+				selectedMech->criticalSlots[21] = selectedMech->criticalSlots[22] = 0;
+				selectedMech->currentAmmo[2] = selectedMech->currentAmmo[6];
+				selectedMech->maxAmmo[2] = selectedMech->maxAmmo[6];
+				selectedMech->currentAmmo[1] = selectedMech->maxAmmo[1] = Ammo_Laser_Infinite;
+				for (uint16_t slot = 3; slot < MechWeaponOrdinalCount; ++slot) {
+					selectedMech->currentAmmo[slot] = selectedMech->maxAmmo[slot] = 0;
+				}
+				selectedMech->upgradeLevelFlags = MechUpgrade_ChameleonComplete;
+			}
 			if (SelectedMechUpgradePackage <= MECH_COMMANDO_LEVEL2)
 			{
 				switch (SelectedMechUpgradePackage)

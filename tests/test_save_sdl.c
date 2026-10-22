@@ -49,6 +49,26 @@ int main(void)
         for(unsigned index=0;index<sizeof expected;++index)
             expected[index]=(uint8_t)(index*37+slot*19);
         memcpy(OriginalSavedState.bytes,expected,sizeof expected);
+        /* Extra: a converted Chameleon uses only existing saved record fields. */
+        Mechs[0]=MechRefs[MechRef_Chameleon];
+        const uint8_t restoredStructure[8]={8,12,12,3,16,8,12,12};
+        memcpy(Mechs[0].currentStructure,restoredStructure,8);
+        memcpy(Mechs[0].maxStructure,restoredStructure,8);
+        Mechs[0].upgradeLevelFlags=MechUpgrade_ChameleonStructureInstalled;
+        if(slot%3) {
+            Mechs[0].criticalSlots[32]=Mechs[0].criticalSlots[33]=Heat_Sink;
+            Mechs[0].currentAmmo[7]=Mechs[0].currentAmmo[8]=0;
+            Mechs[0].maxAmmo[7]=Mechs[0].maxAmmo[8]=0;
+            Mechs[0].upgradeLevelFlags=MechUpgrade_ChameleonCoolingInstalled;
+        }
+        if(slot%3==2) {
+            Mechs[0].criticalSlots[14]=WeaponIndex_PPC+MechComponentToWeaponRecordBias;
+            Mechs[0].criticalSlots[7]=Mechs[0].criticalSlots[8]=0;
+            Mechs[0].criticalSlots[21]=Mechs[0].criticalSlots[22]=0;
+            memset(Mechs[0].currentAmmo+3,0,7);
+            memset(Mechs[0].maxAmmo+3,0,7);
+            Mechs[0].upgradeLevelFlags=MechUpgrade_ChameleonComplete;
+        }
         CacheMapRoomLoaded=FALSE; InsideStarLeagueCache=FALSE;
         memcpy(expected,OriginalSavedState.bytes,sizeof expected);
         CrescentHawkMapPositionX=0x0C35; CrescentHawkMapPositionY=0xC047;

@@ -16,6 +16,37 @@ This is not a redesign. DOS, BIOS and hardware operations are redirected at
 the lowest practical boundary to SDL3 and portable host services; game logic
 remains in the reconstructed procedure chain.
 
+## Extra branch: Chameleon Field Conversion
+
+This branch adds three successive custom Mechlube upgrades (52,000 C-bills total):
+
+1. **Structure Restoration — 16,000 C-bills:** the shop discovers the academy
+   trainer's peculiar frame configuration and restores normal 50-ton internal
+   structure (83 points). This repairs structure fully but preserves other damage.
+2. **Field Conversion — 8,000 C-bills:** replace both machine guns and their
+   ammunition with two standard, damageable heat sinks, retaining all seven lasers.
+3. **PPC Conversion — 28,000 C-bills:** replace the large laser and four small
+   lasers with one PPC, retaining both medium lasers and the extra heat sinks.
+
+All stages retain the 96-point armour profile and 6/6 walking/jumping movement.
+Each stage is purchased once; equipment conversions preserve unrelated damage.
+Stock chassis templates and the save format are unchanged. Earlier custom-upgrade
+saves are not migrated to the new progression.
+
+The corrected TRC-4B construction budget is 50 tons: 5 tons standard structure,
+19 tons standard 300 engine, 3 tons gyro, 3 tons cockpit, 3 tons jump jets,
+6 tons standard armour, and 11 tons weapons/ammunition. The first ten single
+heat sinks are included in the engine weight allowance. The cooling conversion
+exchanges two half-ton machine guns and one shared ton of ammunition for two
+one-ton sinks. The PPC exchanges a five-ton large laser and four half-ton small
+lasers for a seven-ton PPC. Neither conversion increases total weight. The game
+uses simplified component records rather than tabletop critical-slot sheets.
+The academy-frame explanation is custom fiction, not a canonical construction rule.
+
+Inspired by the combat-refit approach of [Sarna's CLN-7W](https://www.sarna.net/wiki/Chameleon#Variants),
+this is a custom Succession Wars-era conversion, not a canonical variant;
+it does not introduce ER/pulse weapons or double heat sinks.
+
 ## Current status
 
 Version 1.1 provides Windows x64 and Linux x86-64 downloads. The Linux binary

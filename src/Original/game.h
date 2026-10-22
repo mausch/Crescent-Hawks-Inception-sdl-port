@@ -1027,6 +1027,13 @@ enum {
     MECH_LOCUST_LEVEL1=0, MECH_WASP_LEVEL1=1, MECH_STINGER_LEVEL1=2, MECH_COMMANDO_LEVEL1=3,
     MECH_LOCUST_LEVEL2=4, MECH_WASP_LEVEL2=5, MECH_STINGER_LEVEL2=6, MECH_COMMANDO_LEVEL2=7,
     MECH_UPGRADE_UNSUPPORTED=8, MECH_UPGRADE_UNSUPPORTED_PSEUDO_COST=0x0D0D,
+    /* Extra branch: custom field refit, outside the original package table. */
+    MECH_CHAMELEON_FIELD_CONVERSION=9, MechUpgrade_ChameleonBase=200,
+    MechUpgrade_ChameleonCost=8000,
+    MECH_CHAMELEON_PPC_CONVERSION=10, MechUpgrade_ChameleonPPCCost=28000,
+    MECH_CHAMELEON_STRUCTURE_RESTORATION=11, MechUpgrade_ChameleonStructureCost=16000,
+    MechUpgrade_ChameleonStructureInstalled=1,
+    MechUpgrade_ChameleonCoolingInstalled=3, MechUpgrade_ChameleonComplete=7,
     MechUpgrade_ChassisCount=4, MechUpgrade_PackageCount=8,
     MechUpgrade_StageOneInstalled=1, MechUpgrade_StageTwoInstalled=2,
     MechUpgrade_BothStagesInstalled=3, MECH_REF_Locust=0,

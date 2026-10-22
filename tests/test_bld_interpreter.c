@@ -7,6 +7,7 @@ static uint16_t argument,secondArgument,randomValue,answer,selection;
 static unsigned entryMode,loads,disks,cacheEntries,healthRefreshes,entryActions;
 static uint8_t partyCount;
 static uint16_t entryScene;
+static unsigned customShop,shopPurchases;
 static void verify(int ok,unsigned line) { if(!ok) { fprintf(stderr,"BLD mismatch line%u\n",line); exit(1); } }
 #define check(x) verify(!!(x),__LINE__)
 /* Interpreter and native WORD readers are real. Rendering, input and action
@@ -15,6 +16,7 @@ void Play_Sound_If_Enabled(uint16_t id) { ++calls; argument=id; }
 void Recruit_Crescent_Hawk_Agent(uint16_t id) { ++calls; argument=id; }
 void Citadel_Building_Dialogs(uint16_t id) {
     ++calls; argument=id;
+    if(customShop && id==CitadelAction_UpgradeMech) ++shopPurchases;
     if(entryMode) { check(id==CitadelDialog_CountOtherPartyMembers); ++entryActions; SelectedPartyMemberSlot=partyCount; }
 }
 void Draw_Menu_Border(uint16_t id) { ++calls; argument=id; }
@@ -89,6 +91,27 @@ int main(void) {
     Execute_Bld_Bytecode(code); check(WorldMapState.bytes[3048-128]==4 && waits==1 && keys==1 && sidebars==1 && texts==1);
     uint8_t table[]={Bld_MenuBranchTable,128,8,0,12,0,Bld_Exit,0,Bld_SetStateByte,98,1,Bld_Exit,Bld_SetStateByte,98,2,Bld_Exit};
     for(selection=0;selection<2;++selection) { Execute_Bld_Bytecode(table); check(argument==0xFF80 && PersistentState.bytes[98]==selection+1); }
+    /* Shop action followed by its workflow gate: custom IDs must never
+     * reach the original package table (represented by the poison action). */
+    uint8_t shop[]={Bld_CallAction,CitadelAction_ModifyMech,
+        Bld_BranchIfStateNonzero,offsetof(PersistentGameState,fields.mechModificationWorkflowEnabled),
+        7,0,Bld_Exit,Bld_CallAction,CitadelAction_RecruitRex,Bld_Exit};
+    customShop=1;
+    for(unsigned package=MECH_CHAMELEON_FIELD_CONVERSION;package<=MECH_CHAMELEON_STRUCTURE_RESTORATION;++package) {
+        SelectedMechUpgradePackage=(uint8_t)package; MechModificationWorkflowEnabled=TRUE;
+        calls=shopPurchases=0; Execute_Bld_Bytecode(shop);
+        check(calls==2 && shopPurchases==1 && argument==CitadelAction_UpgradeMech);
+        check(!MechModificationWorkflowEnabled && SelectedMechUpgradePackage==package);
+        calls=shopPurchases=0; Execute_Bld_Bytecode(shop);
+        check(calls==1 && shopPurchases==0); /* Rejected/maxed-out selection. */
+    }
+    for(unsigned package=0;package<=MECH_UPGRADE_UNSUPPORTED;++package) {
+        SelectedMechUpgradePackage=(uint8_t)package; MechModificationWorkflowEnabled=TRUE;
+        calls=shopPurchases=0; Execute_Bld_Bytecode(shop);
+        check(calls==2 && shopPurchases==0 && argument==CitadelAction_RecruitRex);
+        check(MechModificationWorkflowEnabled); /* Original branch untouched. */
+    }
+    customShop=0;
     uint8_t stateTable[]={Bld_BranchStateTable,0,8,0,12,0,Bld_Exit,0,Bld_SetStateByte,98,1,Bld_Exit,Bld_SetStateByte,98,2,Bld_Exit};
     for(unsigned value=0;value<2;++value) { PersistentState.bytes[0]=(uint8_t)value; Execute_Bld_Bytecode(stateTable); check(PersistentState.bytes[98]==value+1); }
     uint8_t negativeTable[256]={Bld_BranchStateTable,0};
