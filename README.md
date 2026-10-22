@@ -139,6 +139,19 @@ The direct launcher allows the game to update saves in the selected directory.
 Use `-Isolated` to play from a private copy under the ignored build directory.
 The old `Run.ps1` name remains as a compatibility wrapper.
 
+### Sound timing
+
+Sound effects retain the original command streams and `BusyWaitScale=5`.
+The SDL backend uses shared delay times of 10 microseconds per fixed-tone
+iteration, 16 microseconds per sweep iteration and 1.7 microseconds per noise
+iteration. These are playability estimates, not measured original-hardware
+timings. Relative durations within each delay kind are preserved; effects are
+not individually normalized or cut short. Startup takes approximately 1.49
+seconds and mech destruction approximately 2.28 seconds.
+
+The legacy `sound_cycles` setting and `--sound-cycles` option are still accepted
+for compatibility but no longer scale sound timing.
+
 ## Minimal runtime package
 
 Future GitHub releases build and test both platforms before attaching downloads.

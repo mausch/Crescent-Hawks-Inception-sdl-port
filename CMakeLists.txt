@@ -870,6 +870,10 @@ if(CHI_BUILD_SDL)
     add_test(NAME platform.original_redirects COMMAND test_platform)
     add_test(NAME sound.original_timed_effect_playback COMMAND test_platform --sound-timing 6)
     add_test(NAME sound.original_timed_effect_close COMMAND test_platform --sound-close)
+    add_test(NAME sound.shared_effect_durations COMMAND test_platform --shared-sounds)
+    set_tests_properties(sound.shared_effect_durations PROPERTIES
+      TIMEOUT 120 LABELS "sound;platform;integration"
+      ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
     set_tests_properties(sound.original_timed_effect_playback sound.original_timed_effect_close PROPERTIES
       TIMEOUT 5 LABELS "sound;platform;integration"
       ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")

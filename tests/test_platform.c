@@ -33,28 +33,48 @@ int main(int argc,char **argv)
     SDL_Event key;
     unsigned i;
     check(argc==1 || (argc==2 && !strcmp(argv[1],"--sound-close")) ||
+        (argc==2 && !strcmp(argv[1],"--shared-sounds")) ||
         ((argc>=2 && argc<=4) && !strcmp(argv[1],"--sound-timing")));
     Initialize_Graphics_Runtime(); check(SDLBackend_Present(pixels));
     check(SDLBackend_SoundCpuCyclesPerMillisecond==SDLBackend_SoundCpuIbmPc);
-    /* Faster emulated CPUs shorten every busy-wait delay. Do not duplicate
-     * the current tuning constants here: only audio comparison can validate
-     * their values against the original recording. */
+    /* Legacy profiles must not change the shared playability timing. These
+     * assertions pin policy, not original-hardware audio fidelity. */
     const uint32_t profiles[]={SDLBackend_SoundCpuIbmPc,SDLBackend_SoundCpu286,
         SDLBackend_SoundCpu1510,SDLBackend_SoundCpuDosBoxNostalgia};
-    uint32_t previousFixed=UINT32_MAX,previousSweep=UINT32_MAX,previousNoise=UINT32_MAX;
     for(size_t profile=0;profile<sizeof profiles/sizeof profiles[0];++profile) {
         SDLBackend_SetSoundCpuCyclesPerMillisecond(profiles[profile]);
         check(SDLBackend_SoundCpuCyclesPerMillisecond==profiles[profile]);
-        check(SDLBackend_FixedToneIterationNs>0 && SDLBackend_FixedToneIterationNs<previousFixed);
-        check(SDLBackend_SweepIterationNs>0 && SDLBackend_SweepIterationNs<previousSweep);
-        check(SDLBackend_NoiseIterationNs>0 && SDLBackend_NoiseIterationNs<previousNoise);
-        previousFixed=SDLBackend_FixedToneIterationNs;
-        previousSweep=SDLBackend_SweepIterationNs;
-        previousNoise=SDLBackend_NoiseIterationNs;
+        check(SDLBackend_FixedToneIterationNs==10000);
+        check(SDLBackend_SweepIterationNs==16000);
+        check(SDLBackend_NoiseIterationNs==1700);
     }
     SDLBackend_SetSoundCpuCyclesPerMillisecond(0);
     check(SDLBackend_SoundCpuCyclesPerMillisecond==SDLBackend_SoundCpuDosBoxNostalgia);
     SDLBackend_SetSoundCpuCyclesPerMillisecond(SDLBackend_SoundCpuIbmPc);
+    if(argc==2 && !strcmp(argv[1],"--shared-sounds")) {
+        /* Baseline audio sample counts before per-effect normalization, at
+         * BusyWaitScale=5 and 240 cycles/ms. Rescale by delay kind only. */
+        const uint64_t baseline[]={79999,111999,76799,152827,55650,14400,
+            2724120,2820972,903756,48000,47999,1836345,43680,1113000,
+            108000,162000,1056720,105000};
+        for(size_t profile=0;profile<sizeof profiles/sizeof profiles[0];++profile) {
+            SDLBackend_SetSoundCpuCyclesPerMillisecond(profiles[profile]);
+            for(uint16_t id=1;id<=18;++id) {
+                unsigned fixed=id==6 || id==15 || id==16;
+                unsigned sweep=id<=3 || id==10 || id==11;
+                uint64_t expected=baseline[id-1]*(fixed?10000:sweep?16000:1700)/
+                    (fixed?75000:sweep?33333:43750);
+                Sound_Setup(id);
+                check(SDLBackend_TimedEffectSamples+2>=expected &&
+                    SDLBackend_TimedEffectSamples<=expected+2);
+                check(SDLBackend_TimedEffectNonzeroSamples>0);
+                check(!SDLBackend_SoundEffectActive());
+            }
+        }
+        SDLBackend_Close();
+        puts("All 18 effects use shared delay-kind timing at all four legacy profiles.");
+        return 0;
+    }
     if(argc==2 && !strcmp(argv[1],"--sound-close")) {
         Uint64 started=SDL_GetTicksNS();
         SDL_TimerID timer=SDL_AddTimer(100,requestSoundClose,NULL);

@@ -28,15 +28,13 @@ static uint64_t effectStarted,effectDuration;
  * the SDL output boundary: the recovered PIT/gate stream remains exact. */
 static int32_t speakerResponseLevel,speakerLowpass[2];
 static int64_t speakerDcOffsetQ16;
-/* The sweep delay is matched to the supplied DOSBox-X Mech-beam recording at
- * 1510 cycles/ms (its 500->100 Hz descent, rather than just its first edge).
- * Fixed-tone and noise costs remain provisional until separately matched. */
-enum { FixedToneCycleTenths=180,SweepCycleTenths=80,NoiseCycleTenths=105,
-    NanosecondsPerMillisecondPerCycleTenth=100000 };
+/* Shared playability tuning, not measured original-hardware cycle costs.
+ * Preserve native streams, relative timing within each delay kind and the
+ * EXE BusyWaitScale=5. Legacy CPU profiles no longer scale audio time. */
 uint32_t SDLBackend_SoundCpuCyclesPerMillisecond=SDLBackend_SoundCpuIbmPc;
-uint32_t SDLBackend_FixedToneIterationNs=75000;
-uint32_t SDLBackend_SweepIterationNs=33333;
-uint32_t SDLBackend_NoiseIterationNs=43750;
+uint32_t SDLBackend_FixedToneIterationNs=10000;
+uint32_t SDLBackend_SweepIterationNs=16000;
+uint32_t SDLBackend_NoiseIterationNs=1700;
 uint64_t SDLBackend_TimedEffectSamples,SDLBackend_TimedEffectNonzeroSamples;
 static void CheckApplicationClose(void);
 enum { PITInputHz=1193182, SpeakerAmplitude=4096, SpeakerResponseAmplitude=10000,
@@ -292,12 +290,7 @@ void SDLBackend_SetSoundCpuCyclesPerMillisecond(uint32_t cyclesPerMillisecond)
 {
     if(!cyclesPerMillisecond) return;
     SDLBackend_SoundCpuCyclesPerMillisecond=cyclesPerMillisecond;
-    SDLBackend_FixedToneIterationNs=(uint32_t)((uint64_t)FixedToneCycleTenths*
-        NanosecondsPerMillisecondPerCycleTenth/cyclesPerMillisecond);
-    SDLBackend_SweepIterationNs=(uint32_t)((uint64_t)SweepCycleTenths*
-        NanosecondsPerMillisecondPerCycleTenth/cyclesPerMillisecond);
-    SDLBackend_NoiseIterationNs=(uint32_t)((uint64_t)NoiseCycleTenths*
-        NanosecondsPerMillisecondPerCycleTenth/cyclesPerMillisecond);
+    /* Retain configuration/CLI compatibility without rescaling sound timing. */
 }
 void SDLBackend_ToneDelayIteration(int sweep)
 {
