@@ -6,6 +6,12 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Added the tabletop jumping target penalty to combat: a target that moved
+  this round in jump mode gains +1 to be hit on top of its successful-move
+  movement penalty. The planning UI and enemy planner give a unit one
+  movement mode per round, so the order's mode byte identifies the whole
+  plan. This intentionally changes original behavior.
+
 - Temporary playtest override: all arena opponents use the Hunchback, including
   rental fights. Revert the dedicated override commit to restore normal odds.
 

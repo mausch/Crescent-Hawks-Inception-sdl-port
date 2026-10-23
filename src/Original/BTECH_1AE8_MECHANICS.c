@@ -283,6 +283,16 @@ Restore_Attack_Anchor:
 								// Sol: mode FF sign-extends to -1, so contributes zero.
 								AttackTargetNumber += (int8_t)CombatMovementOrders[CombatantId * CombatMovementOrderBytes] + 1; // Sol: 48-byte order row; walk/run/jump modes 0/1/2 add 1/2/3.
 								AttackTargetNumber += (int8_t)CombatTargetMovementPenalty[(int8_t)SuccessfulMovementSteps[TargetCombatantId]];
+								/* Port add (tabletop-derived, no EXE counterpart):
+								 * a target that moved this round in jump mode gains
+								 * the tabletop jumping +1 on top of the movement
+								 * penalty. Order rows carry one mode for the whole
+								 * round (a planning mode switch wipes the row and
+								 * the enemy planner writes a single order), so the
+								 * first order byte identifies the mode, as the heat
+								 * code already assumes at 1631:0C63. */
+								if ((int8_t)CombatMovementOrders[TargetCombatantId * CombatMovementOrderBytes] == (int8_t)MovementMode_Jump)
+									++AttackTargetNumber;
 								if (CombatantId >= Friendly_Infantry_Combatant_Range_First && CombatantId < Enemy_All_CombatantId_Range_First) // Sol: friendly infantry IDs 4..11.
 									AttackingCharacterRecordId = CombatantId - Friendly_Infantry_Combatant_Range_First; // Sol: character records 0..7.
 								if (CombatantId >= Enemy_Infantry_CombatantId_Range_First) // Sol: enemy infantry IDs 16..23.

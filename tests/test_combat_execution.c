@@ -221,6 +221,18 @@ int main(void)
  }
  inheritedAttackResult(5); /* Assigned hit, followed by no-damage Pistol against Mech. */
  inheritedAttackResult(0); /* Assigned miss; the Pistol must not invent an impact. */
+ /* Port add: a jumping target gains +1 to be hit on top of the movement
+  * penalty. Short-range Small Laser base is target 4; Gunnery 2 hits at
+  * 2D6=2, so a walking target stays a hit and a jumping target must flip
+  * the same roll to a miss while the weapon still consumes its ammo. */
+ prepare(0,12);randomByte=0;Characters[0].skillGunnery=2;
+ CombatMovementOrders[12*CombatMovementOrderBytes]=MovementMode_Walk;
+ Combat_Mechanics(FALSE);
+ check(Mechs[0].currentAmmo[0]==9 && memcmp(Mechs[4].currentArmour,(uint8_t[11]){100,100,100,100,100,100,100,100,100,100,100},11)!=0);
+ prepare(0,12);randomByte=0;Characters[0].skillGunnery=2;
+ CombatMovementOrders[12*CombatMovementOrderBytes]=MovementMode_Jump;
+ Combat_Mechanics(FALSE);
+ check(Mechs[0].currentAmmo[0]==9 && memcmp(Mechs[4].currentArmour,(uint8_t[11]){100,100,100,100,100,100,100,100,100,100,100},11)==0);
  puts("Original complete execution parent scenarios passed");
  return 0;
 }
