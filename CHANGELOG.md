@@ -6,6 +6,13 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Added the HBK-4G Hunchback as a rare arena opponent, using existing humanoid
+  graphics: AC/20 with ten shots, two medium lasers, one small laser, thirteen
+  heat sinks, and 4 walking MP. Armour is adapted to 111 points to fit the
+  statistics gauges, retaining standard 50-ton structure. It can be salvaged
+  and saved in existing slots without changing the native save format.
+  No upgrade packages are offered.
+
 - Fixed enemy Mech shots and kicks using Jason's skills through the stock
   templates' pilot ID. Enemy Mech crews now roll independent Gunnery and
   Piloting once per encounter (0–1 for missions, 0–3 for random encounters).

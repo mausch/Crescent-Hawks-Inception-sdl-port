@@ -2,6 +2,7 @@
 #include "dos.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Original0800:32B3..35D2. Sol: Restore native saved bytes, rebuild the map
  * and unsaved friendly animation state. Preserve unchecked read counts and
@@ -47,6 +48,12 @@ void Load_Game(void)
                 DOS_read_file_handler((uint16_t)handle,&CrescentHawkMapPositionX,sizeof(uint16_t));
                 DOS_read_file_handler((uint16_t)handle,&CrescentHawkMapPositionY,sizeof(uint16_t));
                 DOS_close_file((uint16_t)handle);
+                /* Repair the unterminated name emitted by the first Hunchback
+                 * rename. Match only that exact malformed sixteen-byte name;
+                 * keep the native save layout and all other record data. */
+                for(uint16_t mech=0;mech<MechRecordCount;++mech)
+                    if(memcmp(Mechs[mech].name,"HUNCHBACK       ",MechNameLength)==0)
+                        Mechs[mech].name[MechNameLength-1]=0;
                 for(uint16_t code=0;code<CacheSecurityCodeCount;++code) CacheSecurityCodeUsed[code]=FALSE;
                 MenuControls[OuttakeFrequencyMenu].selection=(uint16_t)(int16_t)(int8_t)OuttakeFrequency;
                 if(KuritaDestroyedCitadel!=FALSE) CurrentMap=Map_DestroyedCitadel;

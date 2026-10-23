@@ -3,7 +3,7 @@
  * Locust/Wasp/Stinger/Commando/Chameleon/Jenner/spectator/UrbanMech.
  * Preserve raw values, including odd template defaults; no external assets.
  * Expanded source EXE hash is recorded in BTECH_DATA.c. */
-Mech MechRefs[MechRecordCount] = {
+Mech MechRefs[MechTemplateCount] = {
     {
         .name = {76,79,67,85,83,84,32,32,32,32,32,32,32,32,32,0},
         .tonnage = 20,
@@ -195,5 +195,31 @@ Mech MechRefs[MechRecordCount] = {
         .riderId = 255,
         .upgradePackageBase = 6,
         .upgradeLevelFlags = 0,
+    },
+    /* HBK-4G: 50-ton brawler, adapted to the native compact
+     * component layout. Weapon ammo ordinals follow critical-slot order.
+     * Ten integral sinks plus three represented external sinks = thirteen.
+     * Existing humanoid graphics are intentionally reused. Armour is reduced
+     * proportionally to 111 points so the shared-scale gauges fit the artwork;
+     * standard 50-ton internal structure is retained. */
+    {
+        .name = "HUNCHBACK      ",
+        .tonnage = 50,
+        .currentArmour = {11,14,14,6,18,11,14,14,3,3,3},
+        .currentStructure = {8,12,12,3,16,8,12,12},
+        .currentActuators = {255,255},
+        .engineHeatSinks = 10,
+        .currentAmmo = {255,255,10,255},
+        .walkMove = 4,
+        .jumpMove = 0,
+        .criticalSlots = {[0]=17,[7]=34,[8]=34,[14]=17,[21]=23,[22]=34,[34]=16},
+        .maxArmour = {11,14,14,6,18,11,14,14,3,3,3},
+        .maxStructure = {8,12,12,3,16,8,12,12},
+        .maxActuators = {255,255},
+        .maxAmmo = {255,255,10,255},
+        .lifeSupportState = 1,
+        .riderId = 255,
+        .upgradePackageBase = MECH_UPGRADE_UNSUPPORTED,
+        .upgradeLevelFlags = MechUpgrade_BothStagesInstalled,
     },
 };

@@ -1041,7 +1041,9 @@ enum {
     MechUpgrade_BothStagesInstalled=3, MECH_REF_Locust=0,
     Ammo_Laser_Infinite=255, JumpJets_Removed=0
 };
-extern Mech MechRefs[MechRecordCount]; /* 2FE8:02F0 */
+/* Templates are not saved slots: extensions must not grow MechRecordCount. */
+enum { MechRef_Hunchback=8, MechTemplateCount=9 };
+extern Mech MechRefs[MechTemplateCount]; /* Original eight at 2FE8:02F0. */
 void Generate_Random_Encounter_Enemies(void); /* 0DAB:0D3D */
 extern int16_t MechUpgradeCost; /* 3092:0076 */
 extern uint16_t MechUpgradeCostByPackage[MechUpgrade_PackageCount];

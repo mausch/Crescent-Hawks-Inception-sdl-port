@@ -5,10 +5,10 @@ Mech *EnemySpawnTemplates[EnemySpawnTemplateCount]={
     &MechRefs[MechRef_Jenner],&MechRefs[MechRef_UrbanMech],&MechRefs[MechRef_Commando],
     &MechRefs[MECH_REF_Locust],&MechRefs[MechRef_Wasp],&MechRefs[MECH_REF_Locust],
     &MechRefs[MechRef_Stinger],&MechRefs[MechRef_Wasp],&MechRefs[MechRef_Commando],
-    &MechRefs[MechRef_Jenner],&MechRefs[MechRef_UrbanMech]};
+    &MechRefs[MechRef_Jenner],&MechRefs[MechRef_Hunchback]};
 uint8_t EnemySpawnSpriteFamilies[EnemySpawnTemplateCount]={MECH_Sprite_LOCUST,MECH_Sprite_LOCUST,MECH_Sprite_COMMANDO,
     MECH_Sprite_LOCUST,MECH_Sprite_COMMANDO,MECH_Sprite_LOCUST,MECH_Sprite_COMMANDO,MECH_Sprite_COMMANDO,
-    MECH_Sprite_COMMANDO,MECH_Sprite_LOCUST,MECH_Sprite_LOCUST};
+    MECH_Sprite_COMMANDO,MECH_Sprite_LOCUST,MECH_Sprite_COMMANDO};
 uint8_t EnemySpawnSharedData[EnemySpawnSharedDataBytes]={0,4,0,4,0,1,2,0,1,2,0,1,0,0,4,4,1,1,1,2,2,2,3,3,0,1,3,5,10,14,20};
 uint8_t EnemySpectatorAnimationStream[3]={16,254,2};
 

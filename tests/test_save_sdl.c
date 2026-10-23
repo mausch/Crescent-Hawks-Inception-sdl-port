@@ -69,6 +69,11 @@ int main(void)
             memset(Mechs[0].maxAmmo+3,0,7);
             Mechs[0].upgradeLevelFlags=MechUpgrade_ChameleonComplete;
         }
+        /* A new chassis persists in an existing slot with no extra save bytes. */
+        Mechs[1]=MechRefs[MechRef_Hunchback];
+        Mechs[1].currentAmmo[2]=(uint8_t)(10-slot);
+        /* Also accept saves produced by the earlier unterminated rename. */
+        if(slot==0) Mechs[1].name[MechNameLength-1]=' ';
         CacheMapRoomLoaded=FALSE; InsideStarLeagueCache=FALSE;
         memcpy(expected,OriginalSavedState.bytes,sizeof expected);
         CrescentHawkMapPositionX=0x0C35; CrescentHawkMapPositionY=0xC047;
@@ -85,6 +90,8 @@ int main(void)
         check(!memcmp(disk+1,expected,sizeof expected));
         check(disk[sizeof expected+1]==0x35 && disk[sizeof expected+2]==0x0C);
         check(disk[sizeof expected+3]==0x47 && disk[sizeof expected+4]==0xC0);
+        if(slot==0)
+            expected[(uint8_t *)&Mechs[1].name[MechNameLength-1]-OriginalSavedState.bytes]=0;
         memset(OriginalSavedState.bytes,0xCD,sizeof OriginalSavedState.bytes);
         memset(MapFileByWorldRegion,0,sizeof MapFileByWorldRegion);
         CrescentHawkMapPositionX=CrescentHawkMapPositionY=0xFFFF;

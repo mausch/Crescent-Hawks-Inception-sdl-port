@@ -80,7 +80,7 @@ int main(void) {
         check(sameTemplate(&Mechs[4],&expected) && EnemyMechDamageLevel==effective);
         check(randomCalls==4+(effective>4?5u:0u)+(effective>5?3u:0u));
     }
-    static const unsigned templateIndex[11]={5,7,3,0,1,0,2,1,3,5,7};
+    static const unsigned templateIndex[11]={5,7,3,0,1,0,2,1,3,5,MechRef_Hunchback};
     for(unsigned roll=2;roll<=12;++roll) {
         prepare(); diceValue=(uint16_t)roll; Mission_GenerateEnemies(0x81,0);
         check(sameTemplate(&Mechs[4],&MechRefs[templateIndex[roll-2]]) && diceCalls==1 && randomCalls==5);

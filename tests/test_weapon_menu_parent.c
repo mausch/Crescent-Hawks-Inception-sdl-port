@@ -9,9 +9,11 @@ static unsigned keys,prompts,yesCalls,previews,choiceIndex,choiceCount;
 static uint16_t actor,yesAnswer;
 static struct {uint16_t panel,choice;} choices[12];
 static char output[8192];
+static unsigned hunchbackTargets;
 static void verify(int condition,unsigned line){if(!condition){fprintf(stderr,"Weapon parent mismatch line%u\n",line);exit(1);}}
 #define check(x) verify(!!(x),__LINE__)
-void Display_Text_From_Memory(uint8_t *text){size_t used=strlen(output),length=strlen((char *)text);check(used+length<sizeof output);memcpy(output+used,text,length+1);}
+void Display_Text_From_Memory(uint8_t *text){size_t used=strlen(output),length=strlen((char *)text);check(used+length<sizeof output);memcpy(output+used,text,length+1);
+ if(!strncmp((char *)text,"HUNCHBACK",9) && CurrentMenuLayoutIndex==5){check(TextColumn==15 && length==9 && TextColumn+length<=24);++hunchbackTargets;}}
 void Draw_Top_Graphic_Sidebar(void){}
 void Draw_Menu_Border(uint16_t panel){check(panel<=5);}
 void Set_Text_Colour_Bright_Green(void){TextColour=EGA_BrightGreen;}
@@ -50,7 +52,7 @@ int main(void)
 {
  prepare(0,1);choice(5,1);run();restored();
  check(previews==1 && MenuPanelLayouts[5].height==3 && MenuPanelLayouts[5].top==21 && MenuControls[5].optionCount==2);
- check(strstr(output,"Weapon\t\vAmmo Target  Range") && strstr(output,"\006\017Done") && strstr(output,"Full"));
+  check(strstr(output,"Weapon\t\vAmmo Target  Range") && strstr(output,"\006\017Done") && strstr(output,"Full"));
  prepare(0,0);choice(5,0);run();restored();check(MenuControls[5].optionCount==1);
  prepare(0,12);MechHeatLevel[0]=MechHeatShutdownLevel;
  for(unsigned slot=0;slot<CombatWeaponTargetSlots;++slot)CombatWeaponTarget[slot]=12;
@@ -89,6 +91,10 @@ int main(void)
  prepare(4,0);CombatWeaponTarget[4*CombatWeaponTargetSlots]=6;yesAnswer=FALSE;
  OriginalSavedState.bytes[22]='X';OriginalSavedState.bytes[23]=0;
  run();restored();check(yesCalls==1 && strstr(output,"against a X at ")); /*native character-byte alias, not host Mechs[-2]*/
- puts("Original complete weapon menu and picker scenarios passed");
+  prepare(0,2);Mechs[4]=MechRefs[MechRef_Hunchback];
+  CombatWeaponTarget[0]=CombatWeaponTarget[1]=12;
+  hunchbackTargets=0;choice(5,2);run();restored();
+  check(hunchbackTargets==2 && !memcmp(Mechs[4].name,"HUNCHBACK      ",MechNameLength));
+  puts("Original complete weapon menu and picker scenarios passed");
  return 0;
 }

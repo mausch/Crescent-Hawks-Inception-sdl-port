@@ -52,7 +52,29 @@ int main(void)
 {
     static const uint16_t prices[8] = {11000,10400,12200,13800,15800,14000,13200,17600};
     Mech expected, before, *mech;
-    check(sizeof MechRefs == 1000 && !strcmp((char *)MechRefs[0].name,"LOCUST         "));
+    check(sizeof MechRefs == MechTemplateCount*MechRecordSize && !strcmp((char *)MechRefs[0].name,"LOCUST         "));
+    /* A full-width C string initializer can silently omit its terminator.
+     * Rendering must never continue into tonnage/armour bytes. */
+    for (unsigned index=0;index<MechTemplateCount;++index)
+        check(memchr(MechRefs[index].name,0,MechNameLength)!=NULL);
+    check(!strcmp((char *)MechRefs[MechRef_Hunchback].name,"HUNCHBACK      "));
+    {
+        const Mech *hunchback=&MechRefs[MechRef_Hunchback];
+        const uint8_t armour[MechArmourLocationCount]={11,14,14,6,18,11,14,14,3,3,3};
+        const uint8_t structure[MechStructureLocationCount]={8,12,12,3,16,8,12,12};
+        unsigned total=0;
+        check(!memcmp(hunchback->currentArmour,armour,sizeof armour));
+        check(!memcmp(hunchback->maxArmour,armour,sizeof armour));
+        check(!memcmp(hunchback->currentStructure,structure,sizeof structure));
+        check(!memcmp(hunchback->maxStructure,structure,sizeof structure));
+        for(unsigned location=0;location<MechArmourLocationCount;++location) {
+            unsigned internal=location<MechStructureLocationCount?structure[location]:0;
+            unsigned height=(2u*armour[location]+2u)/3u+(2u*internal+2u)/3u;
+            check(height<=24);
+            total+=armour[location];
+        }
+        check(total==111);
+    }
     check(!memcmp(prices,MechUpgradeCostByPackage,sizeof prices));
     for (uint16_t package = 0; package < MechUpgrade_PackageCount; ++package) {
         mech = reset(package,50000);

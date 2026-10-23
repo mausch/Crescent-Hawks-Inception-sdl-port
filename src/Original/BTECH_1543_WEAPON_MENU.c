@@ -129,7 +129,8 @@ void Combat_Weapon_UI(uint16_t AttackerCombatantId)
 		Draw_Menu_Border(0);
 		Draw_Top_Graphic_Sidebar();
 		Set_Text_Colour_Bright_Green();
-		Display_Text_From_Memory((uint8_t *)"Weapon\t\vAmmo Target  Range"); //3EDB:29BE (embedded column controls)
+		/* Leave nine columns for chassis names, including HUNCHBACK. */
+		Display_Text_From_Memory((uint8_t *)"Weapon\t\vAmmo Target  Range");
 		for (uint16_t WeaponSlot = 0; WeaponSlot < CombatWeaponTargetSlots; WeaponSlot++)
 		{
 			TextColumn = 0;
@@ -169,7 +170,7 @@ void Combat_Weapon_UI(uint16_t AttackerCombatantId)
 					Display_Text_From_Memory((uint8_t *)" "); //Sol: Left-pad numeric ammo to width three.
 				Display_Text_From_Memory(DynamicText);
 			}
-			TextColumn = 0x10;
+			TextColumn = 0x0F;
 			if (*PlannedTarget != 0xFF &&
 				CombatantActive[*PlannedTarget & 0x7F] == FALSE)
 				*PlannedTarget = 0xFF;
@@ -193,7 +194,20 @@ void Combat_Weapon_UI(uint16_t AttackerCombatantId)
 					}
 					int32_t nameOffset=(int32_t)offsetof(OriginalSavedStateStorage,fields.world)
 						+((int32_t)TargetCombatantId-Enemy_Infantry_Record_First)*MechRecordSize;
-					Display_Text_From_Memory(OriginalSavedState.bytes+nameOffset);
+					if (TargetCombatantId >= Enemy_All_CombatantId_Range_First) {
+						/* Saved names are padded to fifteen bytes. Printing that
+						 * padding wraps the compact table into the next row; the
+						 * old eight-column field also overwrote HUNCHBACK's K. */
+						uint8_t targetName[10];
+						unsigned length=0;
+						while (length<9 && OriginalSavedState.bytes[nameOffset+length]!=0) {
+							targetName[length]=OriginalSavedState.bytes[nameOffset+length];
+							++length;
+						}
+						while (length>0 && targetName[length-1]==' ') --length;
+						targetName[length]=0;
+						Display_Text_From_Memory(targetName);
+					} else Display_Text_From_Memory(OriginalSavedState.bytes+nameOffset);
 				}
 				TextColumn = 0x18;
 				TextRow = SavedTextRow;
