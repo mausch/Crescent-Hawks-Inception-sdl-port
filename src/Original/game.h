@@ -323,6 +323,8 @@ extern int16_t MechHeatGaugeFlashCountdown,MechHeatGaugeFlashResetDelay; /*3EDB:
 extern uint16_t MechHeatGaugeFlashColour; /*3EDB:121C, XOR modifies low BYTE*/
 void Draw_Vertical_Mech_Status_Gauge(uint16_t x,uint16_t bottomY,
     uint16_t greenHeight,uint16_t redHeight);
+void Draw_Mech_Protection_Gauge(uint16_t x,uint16_t bottomY,
+    uint16_t armour,uint16_t structure);
 enum { EmbeddedFontGlyphCount=128, FontGlyphRows=8, FontGlyphIndexMask=127,
     TextCellRowByteStride=FontGlyphRows*EgaFramebufferRowBytes };
 extern uint8_t EmbeddedEgaFont[EmbeddedFontGlyphCount*FontGlyphRows]; /* EXE246C:A661 */

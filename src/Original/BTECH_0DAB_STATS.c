@@ -262,8 +262,8 @@ void Examine_Screen_BTSTATS_CMP(uint16_t CombatantId)
 	uint16_t AutoDismissRedrawsRemaining = BTStatsAutoDismissRedraws; // [BP-04]
 	while (InputReceived == FALSE)
 	{
-		// Sol: Redraw the eleven armour silhouettes as stacked green armour and
-		// Sol: red internal-structure gauges. Rear torso locations have no second
+		// Extra: all protection gauges use 1.5 points per pixel, retaining a
+		// common scale across chassis. Rear torso locations have no second
 		// Sol: structure value, represented by a zero offset in DS:1306.
 		for (uint16_t ArmourLocation = 0x00; ArmourLocation < MechArmourLocationCount; ArmourLocation++)
 		{
@@ -273,7 +273,7 @@ void Examine_Screen_BTSTATS_CMP(uint16_t CombatantId)
 			if (StructureOffset != 0x00)
 				CurrentStructure = ((uint8_t *)&Mechs[MechRecordId])[StructureOffset];
 
-			Draw_Vertical_Mech_Status_Gauge(
+			Draw_Mech_Protection_Gauge(
 				MechStatusGaugeX[ArmourLocation],
 				MechStatusGaugeBottomY[ArmourLocation],
 				Mechs[MechRecordId].currentArmour[ArmourLocation],

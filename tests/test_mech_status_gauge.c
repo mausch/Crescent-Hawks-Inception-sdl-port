@@ -65,6 +65,27 @@ static void run(uint16_t x,uint16_t bottom,uint16_t green,uint16_t red,
 int main(void)
 {
     unsigned word,green,red;
+    /* Uniform protection scale: zero, odd/even, and damaged values all share
+     * 1.5 points per pixel. One-pixel segments must have ordered bounds. */
+    for(green=0;green<=35;++green) for(red=0;red<=35;++red) {
+        unsigned bottom=71,index=0;
+        calls=0;
+        Draw_Mech_Protection_Gauge(192,bottom,green,red);
+        if(red) {
+            unsigned height=(2*red+2)/3;
+            expect(index++,192,bottom-height+1,bottom,EGA_Red);
+            bottom-=height;
+        }
+        if(green) {
+            unsigned height=(2*green+2)/3;
+            expect(index++,192,bottom-height+1,bottom,EGA_Green);
+        }
+        check(calls==index);
+    }
+    calls=0;
+    Draw_Mech_Protection_Gauge(192,71,16,16);
+    expect(0,192,61,71,EGA_Red);
+    expect(1,192,50,60,EGA_Green); /* Restored Chameleon uses 22 pixels. */
     check(MechHeatGaugeFlashCountdown==10 && MechHeatGaugeFlashResetDelay==10);
     check(MechHeatGaugeFlashColour==0);
     for(green=0;green<=35;++green) for(red=0;red<=35;++red) {

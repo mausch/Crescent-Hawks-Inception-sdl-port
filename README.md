@@ -43,6 +43,12 @@ lasers for a seven-ton PPC. Neither conversion increases total weight. The game
 uses simplified component records rather than tabletop critical-slot sheets.
 The academy-frame explanation is custom fiction, not a canonical construction rule.
 
+Inspection-screen armour/structure gauges use a uniform 1.5 points per pixel
+across all chassis and locations, keeping the restored torso within the layout
+while preserving comparisons. Each nonzero colour segment rounds up, so one
+remaining point stays visible; one-point differences may share a pixel height.
+The heat gauge retains its original scale and flashing behaviour.
+
 Inspired by the combat-refit approach of [Sarna's CLN-7W](https://www.sarna.net/wiki/Chameleon#Variants),
 this is a custom Succession Wars-era conversion, not a canonical variant;
 it does not introduce ER/pulse weapons or double heat sinks.
