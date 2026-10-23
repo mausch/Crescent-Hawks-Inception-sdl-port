@@ -190,6 +190,11 @@ void Generate_Random_Encounter_Enemies(void)
         }
     }
 
+    for (uint16_t record=LanceSize;record<MechRecordCount;++record) {
+        if (Mechs[record].name[0]==MECH_Destroyed) continue;
+        uint8_t gunnery=Rand_0x00_to_0xFF()&EncounterSmallRollMask;
+        uint8_t piloting=Rand_0x00_to_0xFF()&EncounterSmallRollMask;
+        Mechs[record].pilotId=(uint8_t)(EnemyPilotSkillsTag | gunnery | (piloting<<EnemyPilotPilotingShift));
+    }
     (void)placedInfantry; /* Original unused count; does not gate placement. */
 }
-

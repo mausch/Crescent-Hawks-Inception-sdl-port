@@ -125,6 +125,21 @@ static void inheritedAttackResult(uint8_t rollByte)
 }
 int main(void)
 {
+ /* Packed enemy crew skills are independent and survive the native save
+  * block's byte-for-byte serialization. No enemy Character slots are used. */
+ for(unsigned gunnery=0;gunnery<4;++gunnery) for(unsigned piloting=0;piloting<4;++piloting) {
+  uint8_t saved[OriginalSavedStateBytes];
+  prepare(12,0);randomByte=0;
+  Mechs[4].pilotId=(uint8_t)(EnemyPilotSkillsTag | gunnery | (piloting<<EnemyPilotPilotingShift));
+  memcpy(saved,OriginalSavedState.bytes,sizeof saved);
+  Mechs[4].pilotId=0;
+  memcpy(OriginalSavedState.bytes,saved,sizeof saved);
+  check(EnemyPilotSkill(&Mechs[4],0)==gunnery);
+  check(EnemyPilotSkill(&Mechs[4],1)==piloting);
+  Characters[0].skillGunnery=Characters[8].skillGunnery=4;
+  Combat_Mechanics(FALSE);
+  check((memcmp(Mechs[0].currentArmour,(uint8_t[11]){100,100,100,100,100,100,100,100,100,100,100},11)!=0)==(gunnery>=2));
+ }
  /* Two D6 at six plus3 =15 pistol damage; armour halves it once to7. */
  prepare(4,16);Characters[8].armourValue=10;
  Combat_Mechanics(FALSE);round_finished();
@@ -158,7 +173,23 @@ int main(void)
  check(Mechs[0].currentAmmo[0]==9 && ((uint8_t *)&Mechs[4])[20]==100);
  prepare(12,0);Combat_Mechanics(FALSE);
  check(Mechs[4].currentAmmo[0]==9 && ((uint8_t *)&Mechs[0])[20]==97); /*enemy record bias*/
- prepare(0,12);MechHeatLevel[0]=MechHeatShutdownLevel;Combat_Mechanics(FALSE);
+  /* Enemy crews are Average even with the stock Jason pilot ID or stale
+   * enemy character skills. At 2D6=2 the short-range laser needs skill2. */
+  for(unsigned pilot=0;pilot<=8;pilot+=8) for(unsigned skill=0;skill<=4;++skill) {
+   prepare(12,0);randomByte=0;Mechs[4].pilotId=(uint8_t)pilot;
+   Characters[pilot].skillGunnery=(uint8_t)skill;
+   Characters[pilot].skillPiloting=(uint8_t)skill;
+   Combat_Mechanics(FALSE);
+   check(Mechs[4].currentAmmo[0]==9);
+   check(memcmp(Mechs[0].currentArmour,(uint8_t[11]){100,100,100,100,100,100,100,100,100,100,100},11)!=0);
+  }
+  /* Friendly Mechs still use their actual pilot's Gunnery. */
+  for(unsigned skill=0;skill<=2;++skill) {
+   prepare(0,12);randomByte=0;Characters[0].skillGunnery=(uint8_t)skill;
+   Combat_Mechanics(FALSE);
+   check((memcmp(Mechs[4].currentArmour,(uint8_t[11]){100,100,100,100,100,100,100,100,100,100,100},11)!=0)==(skill==2));
+  }
+  prepare(0,12);MechHeatLevel[0]=MechHeatShutdownLevel;Combat_Mechanics(FALSE);
  check(Mechs[0].currentAmmo[0]==10); /*shutdown heat inhibits firing*/
  prepare(0,12);CombatantPackedX[12]=0x0260;Combat_Mechanics(FALSE);
  check(Mechs[0].currentAmmo[0]==10); /*out of range consumes no ammo*/

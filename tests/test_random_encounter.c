@@ -33,7 +33,9 @@ static void prepare(unsigned negativeX,unsigned negativeY) {
     }
     push(0); push(negativeX!=0); push(0); push(negativeY!=0);
 }
-static void finish(void) {
+static void finish(unsigned crews) {
+    /* Crew rolls follow all native rolls, once per placed Mech. */
+    for(unsigned crew=0;crew<crews;++crew) { push(2); push(3); }
     Generate_Random_Encounter_Enemies();
     check(cursor==count && anchorCalls==1 && originCalls==1);
     for (unsigned actor=0;actor<12;++actor)
@@ -43,7 +45,7 @@ int main(void) {
     static const uint8_t weapons[22]={10,12,9,7,0,8,1,3,5,7,7,8,6,4,3,2,0,0,8,9,13,11};
     prepare(0,0);
     for (unsigned i=0;i<12;++i) push(0);
-    finish(); check(diceCalls==0);
+    finish(0); check(diceCalls==0);
     for (unsigned actor=12;actor<24;++actor)
         check(!CombatantActive[actor] && CombatantPackedX[actor]==65535 && CombatantPackedY[actor]==65535);
     for (unsigned i=8;i<16;++i) check(Characters[i].name==255 && Characters[i].body==0xA5);
@@ -55,7 +57,7 @@ int main(void) {
         for (unsigned i=0;i<7;++i) push(i);
         push(7);
         for (unsigned i=0;i<11;++i) push(0);
-        finish();
+        finish(0);
         Character *person=&Characters[8];
         check(person->name==1 && person->mechAssignment==8 && person->weapon==weapons[sum]);
         check(person->body==6 && person->health==60 && person->dexterity==7 && person->charisma==0xA5);
@@ -70,8 +72,9 @@ int main(void) {
         for (unsigned i=0;i<8;++i) push(0);
         push(1); push(type);
         for (unsigned i=0;i<3;++i) push(0);
-        finish(); check(diceCalls==0);
-        check(!memcmp(&Mechs[4],&MechRefs[type],sizeof(Mech)));
+        finish(1); check(diceCalls==0);
+        Mech expected=MechRefs[type]; expected.pilotId=EnemyPilotSkillsTag | 2 | (3<<EnemyPilotPilotingShift);
+        check(!memcmp(&Mechs[4],&expected,sizeof(Mech)));
         check(CombatantActive[12]==1 && CombatantSpriteFrame[12]==0);
         check(CombatantSpriteFamilyOffset[12]==(type?146:0));
         check(CombatantPackedX[12]==(signs&1?0x0517:0x052B));
@@ -81,14 +84,14 @@ int main(void) {
     prepare(0,0);
     for (unsigned i=0;i<8;++i) push(0);
     for (unsigned i=0;i<4;++i) { Mechs[i].name[0]=255; push(1); }
-    finish(); check(diceCalls==0);
+    finish(0); check(diceCalls==0);
     for (unsigned i=4;i<8;++i) check(Mechs[i].name[0]==255);
     /* Primary525 and adjacent524 are initially blocked. The native search
      * advances one unit to526/527, not a fresh random spawn. */
     prepare(0,0); CombatMap[525]=0; CombatMap[524]=0;
     for (unsigned i=0;i<8;++i) push(0);
     push(1); push(0); for (unsigned i=0;i<3;++i) push(0);
-    finish();
+    finish(1);
     check(CombatantActive[12]==1 && CombatantPackedX[12]==0x052C);
     /* BUG-005: anchor column23 accepts neighbouring cell in the next row.
      * All other tiles blocked makes an accidental "fix" observable. */
@@ -96,14 +99,14 @@ int main(void) {
     memset(CombatMap,0,MapCacheTileCount); CombatMap[527]=40; CombatMap[528]=40;
     for (unsigned i=0;i<8;++i) push(0);
     push(1); push(0); for (unsigned i=0;i<3;++i) push(0);
-    finish();
+    finish(1);
     check(CombatantActive[12]==1 && CombatantPackedX[12]==0x052C);
     /* A passable anchor outside the horizontal cache is discarded AFTER
      * the terrain search, without retrying or regenerating a Mech. */
     prepare(0,0); originColumn=12;
     for (unsigned i=0;i<8;++i) push(0);
     push(1); push(0); for (unsigned i=0;i<3;++i) push(0);
-    finish();
+    finish(0);
     check(Mechs[4].name[0]==255 && !CombatantActive[12] && CombatantPackedX[12]==65535);
     puts("Whole native random encounter: RNG order, infantry rolls, templates and signed origins passed.");
     return 0;

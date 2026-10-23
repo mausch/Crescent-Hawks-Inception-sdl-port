@@ -6,6 +6,12 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Fixed enemy Mech shots and kicks using Jason's skills through the stock
+  templates' pilot ID. Enemy Mech crews now roll independent Gunnery and
+  Piloting once per encounter (0–1 for missions, 0–3 for random encounters).
+  Rolls persist in saves; legacy records fall back to Average skills.
+  This intentionally changes original behavior.
+
 - Fixed Rick Atlas remaining in the weapons shop instead of meeting Jason in
   the lounge after loading a save. Characters waiting inside buildings no longer
   invisibly block entrances and cause other characters to circle outside forever.

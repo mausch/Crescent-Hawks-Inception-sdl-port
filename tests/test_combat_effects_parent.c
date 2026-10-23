@@ -82,8 +82,12 @@ int main(void){
  reset();CombatDisplayGraphics=FALSE;ArenaRentalMechMode=TRUE;
  Combat_AudioVisual_Effects(0,13,15,0,FALSE,FALSE,TRUE,5,TRUE,savedMap);
  check(!ArenaRentalMechMode && ArenaEscapeAllowed);
- check(!memcmp(&Mechs[6],&MechRefs[MechRef_UrbanMech],sizeof(Mech)));
- check(!memcmp(&Mechs[7],&MechRefs[MechRef_UrbanMech],sizeof(Mech)));
+ for(unsigned record=6;record<=7;++record) {
+  Mech expected=MechRefs[MechRef_UrbanMech]; expected.pilotId=Mechs[record].pilotId;
+  check((expected.pilotId & EnemyPilotSkillsTag)!=0);
+  check(EnemyPilotSkill(&Mechs[record],0)<=1 && EnemyPilotSkill(&Mechs[record],1)<=1);
+  check(!memcmp(&Mechs[record],&expected,sizeof(Mech)));
+ }
  check(CombatantActive[14] && CombatantActive[15] && !CombatantActive[13]);
  check(CombatantPackedY[14]==0x8030 && CombatantPackedY[15]==0x8070);
  check(CombatantAnimationCursors[14].offset==0x02A0 && CombatantMovementDirection[14]==4 && CombatantMovementDirection[15]==0);

@@ -28,6 +28,17 @@ typedef struct Mech {
     uint8_t engineHits, gyroHits, sensorHits, lifeSupportState;
     uint8_t pilotId, riderId, upgradePackageBase, upgradeLevelFlags;
 } Mech;
+/* Port extension, enemy records only: tagged pilotId stores two independent
+ * 0..3 skills instead of a party-character index. The native save block already
+ * persists this byte. Salvage replaces pilotId when assigning a friendly pilot.
+ * Untagged legacy records retain the Average fallback. */
+enum { EnemyPilotSkillsTag=0x80, EnemyPilotSkillMask=3, EnemyPilotPilotingShift=2 };
+static inline uint8_t EnemyPilotSkill(const Mech *mech, int piloting)
+{
+    return ((mech->pilotId & 0xF0) == EnemyPilotSkillsTag)
+        ? (uint8_t)((mech->pilotId >> (piloting ? EnemyPilotPilotingShift : 0)) & EnemyPilotSkillMask)
+        : 2;
+}
 /* Native routines pass record BYTE offsets, not array indices. These names
  * keep the two address domains distinct while deriving them from the record. */
 enum {

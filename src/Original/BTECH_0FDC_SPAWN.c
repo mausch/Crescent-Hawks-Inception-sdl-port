@@ -105,4 +105,11 @@ void Mission_GenerateEnemies(uint16_t mechRequest,uint16_t infantryRequest)
             infantry->weapon=Rand_0x00_to_0xFF()%EnemyInfantryWeaponTypeCount;
         }
     }
+    /* Roll after native generation so existing chassis/damage/infantry rolls
+     * keep their ordering. Each crew keeps these skills for this encounter. */
+    for(uint16_t slot=0;slot<mechCount;++slot) {
+        uint8_t gunnery=Rand_0x00_to_0xFF()&1;
+        uint8_t piloting=Rand_0x00_to_0xFF()&1;
+        Mechs[Enemy_Mech_Record_First+slot].pilotId=(uint8_t)(EnemyPilotSkillsTag | gunnery | (piloting<<EnemyPilotPilotingShift));
+    }
 }

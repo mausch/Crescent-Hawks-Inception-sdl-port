@@ -86,6 +86,9 @@ Remove_Casualties:
 				}
 				for (uint16_t ReinforcementId = 14; ReinforcementId <= Enemy_Infantry_CombatantId_Range_First-1; ++ReinforcementId)
 				{
+					uint8_t gunnery = Rand_0x00_to_0xFF() & 1;
+					uint8_t piloting = Rand_0x00_to_0xFF() & 1;
+					Mechs[ReinforcementId-Enemy_Infantry_Record_First].pilotId = (uint8_t)(EnemyPilotSkillsTag | gunnery | (piloting << EnemyPilotPilotingShift));
 					CombatantSpriteFrame[ReinforcementId] = 0;
 					CombatantSpriteFamilyOffset[ReinforcementId] = MECH_Sprite_LOCUST;
 					CombatantAnimationCursors[ReinforcementId] = (AnimationCursor){WalkAnimationStreams,WalkAnimationStreamNativeOffset,0x02A0};

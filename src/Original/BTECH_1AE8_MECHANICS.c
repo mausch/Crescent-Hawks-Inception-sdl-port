@@ -409,7 +409,14 @@ Restore_Attack_Anchor:
 								// Sol: 071B: unsigned skill index at 3EDB:2EE8; signed skill BYTE
 								// Sol: at Infantry+04 (C618), seven contiguous skills. No original bounds check.
 								uint8_t SkillIndex = WeaponStats[WeaponIndex].skillType;
-								AttackTargetNumber -= (int8_t)*((uint8_t *)&Characters[AttackingCharacterRecordId] + offsetof(Character,skillBowsAndBlade) + SkillIndex);
+								/* Port fix: enemy templates have pilotId=0 (Jason), and neither
+								 * encounter generator supplies initialized Mech pilot skills.
+								 * New encounters store independent crew skills in the enemy record;
+								 * legacy saves use Average without consuming infantry slots. */
+								if (CombatantId >= Enemy_All_CombatantId_Range_First && CombatantId < Enemy_Infantry_CombatantId_Range_First)
+									AttackTargetNumber -= EnemyPilotSkill(&Mechs[CombatantId-Enemy_Infantry_Record_First], WeaponIndex == WeaponIndex_Kick);
+								else
+									AttackTargetNumber -= (int8_t)*((uint8_t *)&Characters[AttackingCharacterRecordId] + offsetof(Character,skillBowsAndBlade) + SkillIndex);
 								//If Target is infantry
 								if (TargetCombatantId >= Friendly_Infantry_Combatant_Range_First && TargetCombatantId < Enemy_All_CombatantId_Range_First || TargetCombatantId >= Enemy_Infantry_CombatantId_Range_First)
 								{
