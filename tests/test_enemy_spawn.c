@@ -80,10 +80,11 @@ int main(void) {
         check(sameTemplate(&Mechs[4],&expected) && EnemyMechDamageLevel==effective);
         check(randomCalls==4+(effective>4?5u:0u)+(effective>5?3u:0u));
     }
-    static const unsigned templateIndex[11]={5,7,3,0,1,0,2,1,3,5,MechRef_Hunchback};
+    /* Temporary arena override must cover every normal roll and rental band. */
     for(unsigned roll=2;roll<=12;++roll) {
         prepare(); diceValue=(uint16_t)roll; Mission_GenerateEnemies(0x81,0);
-        check(sameTemplate(&Mechs[4],&MechRefs[templateIndex[roll-2]]) && diceCalls==1 && randomCalls==5);
+        check(sameTemplate(&Mechs[4],&MechRefs[MechRef_Hunchback]) && diceCalls==1 && randomCalls==5);
+        check(CombatantSpriteFamilyOffset[12]==MECH_Sprite_COMMANDO);
         check(CombatantPackedX[12]==0x0A10 && CombatantPackedY[12]==0x806F);
     }
     for(unsigned band=0;band<4;++band) {
@@ -92,7 +93,7 @@ int main(void) {
         check(CombatantActive[13]==TRUE && CombatantPackedX[13]==0x0A06 && CombatantPackedY[13]==0x8066);
         check(sameTemplate(&Mechs[5],&MechRefs[6]) && CombatantSpriteFrame[13]==16 && CombatantAnimationSelector[13]==2);
         check(CombatantAnimationCursors[13].data==EnemySpectatorAnimationStream && CombatantAnimationCursors[13].offset==0x4DD8);
-        check(sameTemplate(&Mechs[4],&MechRefs[templateIndex[3+band]]));
+        check(sameTemplate(&Mechs[4],&MechRefs[MechRef_Hunchback]));
     }
     prepare(); ArenaRentalMechMode=TRUE; memset(StoredPartyMechNameInitial,'L',LanceSize);
     Mission_GenerateEnemies(0x81,0); check(CombatantActive[12]==TRUE && CombatantActive[13]==FALSE && diceCalls==1 && randomCalls==6);

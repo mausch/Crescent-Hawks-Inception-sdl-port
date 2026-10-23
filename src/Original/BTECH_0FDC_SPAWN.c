@@ -42,6 +42,10 @@ void Mission_GenerateEnemies(uint16_t mechRequest,uint16_t infantryRequest)
         uint16_t choice=Roll2D6()-EnemyChassisDiceMinimum;
         if(ArenaRentalMechMode!=FALSE) choice=(Rand_0x00_to_0xFF()&EnemyArenaSpawnRandomMask)+EnemyRentalChassisFirstIndex;
         selectedTemplate=EnemySpawnTemplates[choice]; family=(uint16_t)(int16_t)(int8_t)EnemySpawnSpriteFamilies[choice];
+        /* TEMPORARY arena playtest: keep the normal rolls above so only the
+         * opponent chassis changes. Revert this commit to restore variety. */
+        selectedTemplate=&MechRefs[MechRef_Hunchback];
+        family=MECH_Sprite_COMMANDO;
     } else {
         spawnX=(Rand_0x00_to_0xFF()&EnemyTrainingSpawnRandomMask)+EnemyTrainingSpawnX;
         spawnY=(Rand_0x00_to_0xFF()&EnemyTrainingSpawnRandomMask)+EnemyTrainingSpawnY;

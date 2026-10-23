@@ -6,6 +6,9 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Temporary playtest override: all arena opponents use the Hunchback, including
+  rental fights. Revert the dedicated override commit to restore normal odds.
+
 - Added the HBK-4G Hunchback as a rare arena opponent, using existing humanoid
   graphics: AC/20 with ten shots, two medium lasers, one small laser, thirteen
   heat sinks, and 4 walking MP. Armour is adapted to 111 points to fit the
