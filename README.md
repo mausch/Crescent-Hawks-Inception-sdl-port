@@ -53,6 +53,15 @@ Inspired by the combat-refit approach of [Sarna's CLN-7W](https://www.sarna.net/
 this is a custom Succession Wars-era conversion, not a canonical variant;
 it does not introduce ER/pulse weapons or double heat sinks.
 
+## Hunchback world sprites
+
+The custom HBK-4G uses its own 20-frame world/combat body sprites: four walk
+cycles, standing and firing poses, with a larger right-shoulder cannon and
+narrower humanoid shoulders. The native EGA art is embedded in the executable;
+other mechs and existing saves are unchanged. Shared effects, wrecks, cinematic
+animations and the statistics illustration retain their original graphics.
+See [the art, previews and regeneration workflow](assets/hunchback/README.md).
+
 ## Current status
 
 Version 1.1 provides Windows x64 and Linux x86-64 downloads. The Linux binary

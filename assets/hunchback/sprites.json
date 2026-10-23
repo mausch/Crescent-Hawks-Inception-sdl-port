@@ -1,0 +1,233 @@
+{
+  "width": 24,
+  "height": 24,
+  "columns": 4,
+  "rows": 5,
+  "nativeFamily": 146,
+  "frameBytes": 292,
+  "format": "4-byte header; scanline, 8-pixel cell, B/G/R/I plane; MSB-first; index 0 transparent",
+  "palette": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      170,
+      0
+    ],
+    [
+      0,
+      170,
+      170
+    ],
+    [
+      170,
+      0,
+      0
+    ],
+    [
+      85,
+      85,
+      255
+    ],
+    [
+      170,
+      85,
+      0
+    ],
+    [
+      170,
+      170,
+      170
+    ],
+    [
+      85,
+      85,
+      85
+    ],
+    [
+      0,
+      0,
+      170
+    ],
+    [
+      85,
+      255,
+      85
+    ],
+    [
+      85,
+      255,
+      255
+    ],
+    [
+      255,
+      85,
+      85
+    ],
+    [
+      255,
+      85,
+      255
+    ],
+    [
+      255,
+      255,
+      85
+    ],
+    [
+      255,
+      255,
+      255
+    ]
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "name": "north-walk-0",
+      "x": 0,
+      "y": 0,
+      "sha256": "d69ad827fafcad4b50b6dd1c919099bee81cff4952b0dddf56a708546c916f91"
+    },
+    {
+      "frame": 1,
+      "name": "north-walk-1",
+      "x": 24,
+      "y": 0,
+      "sha256": "a4af251187390de6f20627342a5abd52c43e3d79b26a2a3d0c71158cb68045cd"
+    },
+    {
+      "frame": 2,
+      "name": "north-walk-2",
+      "x": 48,
+      "y": 0,
+      "sha256": "f311ca39da4e534b179e8d6cf61808de25b396275d494a4ca87bf3eab5474396"
+    },
+    {
+      "frame": 3,
+      "name": "north-walk-3",
+      "x": 72,
+      "y": 0,
+      "sha256": "0f5a1059d8a9a09dd63604201cf75a9fbc4c59e8b784c69f9ae8fb5cdfe98197"
+    },
+    {
+      "frame": 4,
+      "name": "east-walk-0",
+      "x": 0,
+      "y": 24,
+      "sha256": "328722c7f7b81486c98f8e0b91228ba8b18b235079084d4eba63a56b3cea61b4"
+    },
+    {
+      "frame": 5,
+      "name": "east-walk-1",
+      "x": 24,
+      "y": 24,
+      "sha256": "385d8992578d7974d457458c8a534e9e40da9b6321535b3427077fce586ec396"
+    },
+    {
+      "frame": 6,
+      "name": "east-walk-2",
+      "x": 48,
+      "y": 24,
+      "sha256": "371af47e1485e3480f0d238bfb8be09b4fd0a9f4e5aff369c4501bcef8d2b9ae"
+    },
+    {
+      "frame": 7,
+      "name": "east-walk-3",
+      "x": 72,
+      "y": 24,
+      "sha256": "edaeee071806eb773cc9c4d84559827b361fecce8cb9e6873b61acef4f7445b7"
+    },
+    {
+      "frame": 8,
+      "name": "south-walk-0",
+      "x": 0,
+      "y": 48,
+      "sha256": "121736a89a4c08014acc39c21d648c2e7c99729b5ccd9004c46774ef4a57a28e"
+    },
+    {
+      "frame": 9,
+      "name": "south-walk-1",
+      "x": 24,
+      "y": 48,
+      "sha256": "088617328bec427e4ea13be5fb2c1c0707adb24d4599411ab92c601b408dd8ed"
+    },
+    {
+      "frame": 10,
+      "name": "south-walk-2",
+      "x": 48,
+      "y": 48,
+      "sha256": "ef6b2ab10b8bfed87c177fc580ed8cbd75abda9dfdc96045150fe4718a7071eb"
+    },
+    {
+      "frame": 11,
+      "name": "south-walk-3",
+      "x": 72,
+      "y": 48,
+      "sha256": "8d896c252ba078553bcf43a74c67a3c6ba6e18c570dba278720d7b058b8fbdc9"
+    },
+    {
+      "frame": 12,
+      "name": "west-walk-0",
+      "x": 0,
+      "y": 72,
+      "sha256": "3d417af1769a064706959c64a24bf645e798fce3d81b12b8d1df26a1a8d64f04"
+    },
+    {
+      "frame": 13,
+      "name": "west-walk-1",
+      "x": 24,
+      "y": 72,
+      "sha256": "33f1f199f05563f4fa58827b89d7b83e817bd50e3609d4928c562c9ba2c64436"
+    },
+    {
+      "frame": 14,
+      "name": "west-walk-2",
+      "x": 48,
+      "y": 72,
+      "sha256": "a265f9090657d5f5d1b6568b51c3b8807d0d9252f6cd847ed71f4fd210f7d3f0"
+    },
+    {
+      "frame": 15,
+      "name": "west-walk-3",
+      "x": 72,
+      "y": 72,
+      "sha256": "e744134c0811489ffe7f265ee9df9d82d057980b77b4fbc9300ef93b25eb8d0e"
+    },
+    {
+      "frame": 16,
+      "name": "south-standing",
+      "x": 0,
+      "y": 96,
+      "sha256": "9d076e6d42f90d95ceec0b1f5f95a64dad687eabe8edb50bddef3d143e761cdd"
+    },
+    {
+      "frame": 17,
+      "name": "north-standing",
+      "x": 24,
+      "y": 96,
+      "sha256": "59dc154d639e63dfb402493facedc929c9e45fd7986c4932c35d8bdb6755da27"
+    },
+    {
+      "frame": 18,
+      "name": "east-firing",
+      "x": 48,
+      "y": 96,
+      "sha256": "a864edad8c49d24a705262d4be1d34999c854d99b90ab19b945e8ca876fb0135"
+    },
+    {
+      "frame": 19,
+      "name": "west-firing",
+      "x": 72,
+      "y": 96,
+      "sha256": "a40b8a0a41b58f86e540fee352abcfd4dca0b53e7bb7236ab4d7a9f89f3d71d3"
+    }
+  ]
+}

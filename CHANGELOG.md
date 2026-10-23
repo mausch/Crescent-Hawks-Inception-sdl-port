@@ -6,6 +6,12 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Added a complete, original 20-frame HBK-4G world/combat sprite bank with
+  a larger right-shoulder cannon, narrower shoulders, articulated limbs and
+  forward-facing boots. Native EGA sprites are embedded in the runtime and
+  selected per friendly/enemy Hunchback without changing saves or other mechs.
+  Includes editable pixel art, animation previews and a reproducible encoder.
+
 - Added the tabletop jumping target penalty to combat: a target that moved
   this round in jump mode gains +1 to be hit on top of its successful-move
   movement penalty. The planning UI and enemy planner give a unit one
@@ -15,8 +21,8 @@ do not identify an original DOS release.
 - Temporary playtest override: all arena opponents use the Hunchback, including
   rental fights. Revert the dedicated override commit to restore normal odds.
 
-- Added the HBK-4G Hunchback as a rare arena opponent, using existing humanoid
-  graphics: AC/20 with ten shots, two medium lasers, one small laser, thirteen
+- Added the HBK-4G Hunchback as a rare arena opponent: AC/20 with ten shots,
+  two medium lasers, one small laser, thirteen
   heat sinks, and 4 walking MP. Armour is adapted to 111 points to fit the
   statistics gauges, retaining standard 50-ton structure. It can be salvaged
   and saved in existing slots without changing the native save format.

@@ -5,7 +5,7 @@ $projectGuid = '{7C65E83A-78EE-47C3-93DE-29D0434BA7CE}'
 $original = Join-Path $projectRoot 'src/Original'
 $sdl = Join-Path $projectRoot 'src/SDL'
 $files = @(Get-ChildItem -LiteralPath $original,$sdl -File |
-    Where-Object { $_.Extension -in '.c','.h' } |
+    Where-Object { $_.Extension -in '.c','.h','.inc' } |
     Sort-Object DirectoryName,Name)
 $sourcePaths = @($files | Where-Object Extension -eq '.c' | ForEach-Object {
     'src/' + $_.Directory.Name + '/' + $_.Name
@@ -121,4 +121,4 @@ $encoding = [Text.UTF8Encoding]::new($false)
 [IO.File]::WriteAllText((Join-Path $projectRoot 'CrescentHawksInception.vcxproj'),$project,$encoding)
 [IO.File]::WriteAllText((Join-Path $projectRoot 'CrescentHawksInception.vcxproj.filters'),$filters,$encoding)
 [IO.File]::WriteAllText((Join-Path $projectRoot 'CrescentHawksInception.sln'),$solution,$encoding)
-Write-Output "Visual Studio solution updated: $($sourcePaths.Count) C files, $(@($files | Where-Object Extension -eq '.h').Count) headers."
+Write-Output "Visual Studio solution updated: $($sourcePaths.Count) C files, $(@($files | Where-Object Extension -ne '.c').Count) headers/includes."

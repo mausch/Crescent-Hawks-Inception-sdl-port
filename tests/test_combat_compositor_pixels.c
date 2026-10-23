@@ -18,6 +18,49 @@ static unsigned pixel(unsigned x,unsigned y) {
         if(SDLBackend_ReadEgaPlaneByte(MapViewportSegment,(uint16_t)(y*40+x/8),plane)&(0x80>>(x%8))) colour|=1u<<plane;
     return colour;
 }
+static unsigned spritePixel(const uint8_t *sprite,unsigned x,unsigned y) {
+    unsigned colour=0,offset=4+(y*3+x/8)*4;
+    for(unsigned plane=0;plane<4;++plane)
+        colour|=((sprite[offset+plane]>>(7-x%8))&1u)<<plane;
+    return colour;
+}
+static void hunchbackPixels(void) {
+    memset(CombatantPackedX,255,sizeof CombatantPackedX);
+    memset(CombatantPackedY,255,sizeof CombatantPackedY);
+    memset(CombatantSpriteFamilyOffset,0,sizeof CombatantSpriteFamilyOffset);
+    Mechs[0]=MechRefs[MechRef_Hunchback]; Mechs[4]=MechRefs[MechRef_Commando];
+    CombatantSpriteFamilyOffset[0]=CombatantSpriteFamilyOffset[12]=MECH_Sprite_COMMANDO;
+    CombatantPackedX[0]=0x0220; CombatantPackedY[0]=0x3020;
+    CombatantPackedX[12]=0x0225; CombatantPackedY[12]=0x3020;
+    solid(mech[1],24,3,7);
+    for(unsigned frame=0;frame<HunchbackSpriteCount;++frame) {
+        unsigned spriteId=MECH_Sprite_COMMANDO+frame;
+        CombatSpritePointers[spriteId]=mech[1]; /* Same family/frame, different chassis. */
+        CombatantSpriteFrame[0]=CombatantSpriteFrame[12]=(uint8_t)frame;
+        uint8_t *art=Resolve_Mech_Combat_Sprite(0,(uint16_t)spriteId);
+        check(art!=mech[1]);
+        for(unsigned clip=0;clip<3;++clip) {
+            unsigned height=24-clip*8;
+            memset(background,0x99,sizeof background);
+            memset(CombatMap,clip==1?0x1F:0x2F,sizeof CombatMap);
+            InsideStarLeagueCache=(uint8_t)(clip==0);
+            SDLBackend_EgaRasterOperation=EgaRaster_Replace; SDLBackend_EgaMapMask=15;
+            SDLBackend_EgaRotateCount=SDLBackend_EgaEnableSetReset=SDLBackend_EgaSetReset=0;
+            DrawCall_Image_To_VGA_Memory(background,MapViewportSegment);
+            Draw_Menu_MultiSelect();
+            for(unsigned y=0;y<200;++y) for(unsigned x=0;x<320;++x) {
+                unsigned expected=9;
+                if(x>=200 && x<224 && y>=80 && y<80+height) {
+                    unsigned c=spritePixel(art,x-200,y-80);
+                    if(c) expected=c;
+                }
+                if(x>=240 && x<264 && y>=80 && y<80+height) expected=7;
+                check(pixel(x,y)==expected);
+            }
+            check(art[1]==23 && mech[1][1]==23);
+        }
+    }
+}
 int main(void) {
     memset(CombatantPackedX,255,sizeof CombatantPackedX); memset(CombatantPackedY,255,sizeof CombatantPackedY);
     memset(CombatantSpriteFrame,0,sizeof CombatantSpriteFrame); memset(CombatantSpriteFamilyOffset,0,sizeof CombatantSpriteFamilyOffset);
@@ -43,5 +86,6 @@ int main(void) {
         }
         check(mech[0][1]==23 && mech[1][1]==23 && infantry[1]==7);
     }
-    puts("Original combat compositor SDL pixels passed"); return 0;
+    hunchbackPixels();
+    puts("Original and Hunchback compositor SDL pixels passed (all20 frames; transparency; 0/8/16-row occlusion)"); return 0;
 }

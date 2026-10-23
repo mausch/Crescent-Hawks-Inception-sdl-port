@@ -1,0 +1,5 @@
+# Superseded local design drafts; canonical art lives in ../hunchback/.
+# Comparison images also contain private original game artwork.
+*
+!.gitignore
+!README.md

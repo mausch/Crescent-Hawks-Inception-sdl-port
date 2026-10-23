@@ -199,8 +199,9 @@ Mech MechRefs[MechTemplateCount] = {
     /* HBK-4G: 50-ton brawler, adapted to the native compact
      * component layout. Weapon ammo ordinals follow critical-slot order.
      * Ten integral sinks plus three represented external sinks = thirteen.
-     * Existing humanoid graphics are intentionally reused. Armour is reduced
-     * proportionally to 111 points so the shared-scale gauges fit the artwork;
+     * World sprites have port-owned HBK-4G art; the humanoid statistics
+     * illustration is reused. Armour is reduced proportionally to 111 points
+     * so the shared-scale gauges fit that illustration;
      * standard 50-ton internal structure is retained. */
     {
         .name = "HUNCHBACK      ",

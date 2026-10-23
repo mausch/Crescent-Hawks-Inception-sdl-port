@@ -53,6 +53,7 @@ void Draw_Menu_MultiSelect(void)
     int16_t lastVisible=-1;
     uint16_t visibleX[VisibleMechMaximum],visibleY[VisibleMechMaximum];
     uint8_t visibleOverlap[VisibleMechMaximum],visibleSprite[VisibleMechMaximum];
+    uint8_t visibleCombatant[VisibleMechMaximum]; /* Port art identity follows the depth sort. */
     for(uint16_t side=0;side<=Enemy_All_CombatantId_Range_First;side+=Enemy_All_CombatantId_Range_First)
         for(uint16_t slot=0;slot<LanceSize;++slot) {
             uint16_t id=(uint16_t)(side+slot),worldX=CombatantPackedX[id],worldY=CombatantPackedY[id];
@@ -95,6 +96,7 @@ void Draw_Menu_MultiSelect(void)
             visibleX[lastVisible]=pixelX; visibleY[lastVisible]=pixelY; visibleOverlap[lastVisible]=overlap;
             /* Native ADD AL, truncates sprite sum before storing local BYTE. */
             visibleSprite[lastVisible]=(uint8_t)(CombatantSpriteFrame[id]+CombatantSpriteFamilyOffset[id]);
+            visibleCombatant[lastVisible]=(uint8_t)id;
         }
     if(lastVisible!=-1) {
         for(int16_t front=0;front<lastVisible;++front)
@@ -104,9 +106,10 @@ void Draw_Menu_MultiSelect(void)
                     word=visibleY[candidate]; visibleY[candidate]=visibleY[front]; visibleY[front]=word;
                     uint8_t byte=visibleSprite[candidate]; visibleSprite[candidate]=visibleSprite[front]; visibleSprite[front]=byte;
                     byte=visibleOverlap[candidate]; visibleOverlap[candidate]=visibleOverlap[front]; visibleOverlap[front]=byte;
+                    byte=visibleCombatant[candidate]; visibleCombatant[candidate]=visibleCombatant[front]; visibleCombatant[front]=byte;
                 }
         for(int16_t index=0;index<=lastVisible;++index) {
-            uint8_t *sprite=CombatSpritePointers[visibleSprite[index]];
+            uint8_t *sprite=Resolve_Mech_Combat_Sprite(visibleCombatant[index],visibleSprite[index]);
             uint8_t overlap=visibleOverlap[index];
             sprite[SpriteHeightMinusOneByte]-=overlap;
             DrawCall_EGA_CharacterPos(destination,sprite,(int16_t)(uint16_t)(visibleX[index]-PixelsPerMapCell),

@@ -545,6 +545,9 @@ void VGA_Inline_ASM_Loop(uint8_t *source,uint8_t *destination,uint16_t wordsToCo
 enum { CombatSpriteCount=376, CombatSpriteHeaderBytes=4, SpriteHeightMinusOneByte=1,
     SpriteWidthByte=2, SpritePlanesPerCell=4, SpriteWordsPerCell=2 };
 extern uint8_t *CombatSpritePointers[CombatSpriteCount]; /*3092:39FA..3FD9 native FAR table*/
+/* Port-owned Hunchback art selected per mech record, without new saved IDs. */
+enum { HunchbackSpriteCount=20, HunchbackSpriteBytes=4+24*3*4 };
+uint8_t *Resolve_Mech_Combat_Sprite(uint16_t combatantId,uint16_t spriteId);
 extern uint8_t *TinylandTileset;
 void Setup_Game(void); /*0D27:0044*/
 void Startup_Print_Nul_String(uint8_t *text);

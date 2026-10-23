@@ -96,11 +96,24 @@
             '';
           };
         in { default = launcher; inherit runtime integration-tests; });
-      checks = forAllSystems (system: { runtime = self.packages.${system}.runtime; });
+      checks = forAllSystems (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          spritePython = pkgs.python3.withPackages (p: [ p.pillow ]);
+        in {
+          runtime = self.packages.${system}.runtime;
+          hunchback-art = pkgs.runCommand "chi-hunchback-art-check" {
+            nativeBuildInputs = [ spritePython ];
+          } ''
+            python ${self}/tools/generate_hunchback_sprites.py --check
+            touch "$out"
+          '';
+        });
       devShells = forAllSystems (system:
         let pkgs = import nixpkgs { inherit system; };
         in { default = pkgs.mkShell {
-          packages = [ pkgs.cmake pkgs.ninja pkgs.sdl3 pkgs.pkg-config ];
+          packages = [ pkgs.cmake pkgs.ninja pkgs.sdl3 pkgs.pkg-config
+            (pkgs.python3.withPackages (p: [ p.pillow ])) ];
         }; });
     };
 }

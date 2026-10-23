@@ -209,6 +209,8 @@
     <ClCompile Include="src\Original\BTECH_COMBAT_PROJECTION_DATA.c" />
     <ClCompile Include="src\Original\BTECH_DATA.c" />
     <ClCompile Include="src\Original\BTECH_FONT_DATA.c" />
+    <ClInclude Include="src\Original\BTECH_HUNCHBACK_ART.inc" />
+    <ClCompile Include="src\Original\BTECH_HUNCHBACK_SPRITES.c" />
     <ClCompile Include="src\Original\BTECH_MAP_DATA.c" />
     <ClCompile Include="src\Original\BTECH_MECHREFS.c" />
     <ClCompile Include="src\Original\BTECH_MENU_DATA.c" />

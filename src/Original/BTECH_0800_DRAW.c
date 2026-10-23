@@ -211,8 +211,9 @@ void Draw_Infantry_And_Mechs(void)
             }
 
             TerrainOverlapRows[LanceMechId] = OverlapRows; //3092:32AE
+            /* Use the record ID, not the compacted formation slot. */
+            uint8_t *Sprite = Resolve_Mech_Combat_Sprite((uint16_t)LanceMechId,SpritePointerIndex);
             /* Original inline temporary header edit, undone after the draw. */
-            uint8_t *Sprite = CombatSpritePointers[SpritePointerIndex];
             Sprite[SpriteHeightMinusOneByte] -= OverlapRows;
             DrawCall_EGA_CharacterPos(Destination, Sprite, (int16_t)ScreenPosX, (int16_t)ScreenPosY);
             Sprite[SpriteHeightMinusOneByte] += OverlapRows;

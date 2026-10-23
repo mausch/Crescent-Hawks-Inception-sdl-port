@@ -171,6 +171,8 @@
     <ClCompile Include="src\Original\BTECH_COMBAT_PROJECTION_DATA.c"><Filter>Original</Filter></ClCompile>
     <ClCompile Include="src\Original\BTECH_DATA.c"><Filter>Original</Filter></ClCompile>
     <ClCompile Include="src\Original\BTECH_FONT_DATA.c"><Filter>Original</Filter></ClCompile>
+    <ClInclude Include="src\Original\BTECH_HUNCHBACK_ART.inc"><Filter>Original</Filter></ClInclude>
+    <ClCompile Include="src\Original\BTECH_HUNCHBACK_SPRITES.c"><Filter>Original</Filter></ClCompile>
     <ClCompile Include="src\Original\BTECH_MAP_DATA.c"><Filter>Original</Filter></ClCompile>
     <ClCompile Include="src\Original\BTECH_MECHREFS.c"><Filter>Original</Filter></ClCompile>
     <ClCompile Include="src\Original\BTECH_MENU_DATA.c"><Filter>Original</Filter></ClCompile>
