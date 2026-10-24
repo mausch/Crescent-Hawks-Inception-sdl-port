@@ -6,13 +6,29 @@
 static unsigned sounds[32],soundCount,compositions,presentations,retraces,lines,sprites,scenes,messages;
 static uint16_t lastSprite,lastScene;
 static uint8_t *lastText;
+static unsigned traceAttacks, attackReports, attackResults, attackAnimations;
+static uint16_t reportColours[2];
+static unsigned refreshVisibility;
 static void verify(int passed,unsigned line) {if(!passed){fprintf(stderr,"Effects parent mismatch line%u\n",line);exit(1);}}
 #define check(x) verify(!!(x),__LINE__)
 /* Sol: isolated presentation/audio boundaries, never production replacements.
  * Original effects parent, animation interpreter, effect registration, Mech
  * templates, WORD abs and octant helper are the actual C implementations. */
-void Play_Sound_If_Enabled(uint16_t id){check(soundCount<32);sounds[soundCount++]=id;}
-void Combat_Restore_Map_View_And_Draw_World(uint8_t *map){check(map!=NULL);++compositions;}
+void Play_Sound_If_Enabled(uint16_t id){
+ if(traceAttacks && id==Sound_SingleShotProjectile) {
+  ++attackAnimations;
+  check(attackReports==attackAnimations); /* report immediately precedes its animation */
+  check(attackResults==attackAnimations);
+  check(TextColour==reportColours[attackAnimations-1]);
+ }
+ check(soundCount<32);sounds[soundCount++]=id;
+}
+void Combat_Restore_Map_View_And_Draw_World(uint8_t *map){
+ check(map!=NULL);++compositions;
+ if(refreshVisibility)
+  for(unsigned id=0;id<AllCombatantCount;++id)
+   CombatantVisibleOnScreen[id]=CombatantActive[id];
+}
 void EGA_DrawBox_Wrapper(void){++presentations;}
 void Wait_For_N_Vertical_Retraces(uint16_t n){retraces+=n;}
 void Draw_Combat_Sprites(uint16_t sprite,uint16_t x,uint16_t y){(void)x;(void)y;lastSprite=sprite;++sprites;}
@@ -32,7 +48,15 @@ void Draw_Menu_MultiSelect(void){}
 void Draw_Message_Box(void){}
 void Display_Text_From_Memory_ScreenRetrace_KeyboardInput(uint8_t *text){lastText=text;}
 uint16_t Keyboard_Get_ASCII_Hex_Input(void){return 13;}
-void Display_Text_From_Memory(uint8_t *text){lastText=text;}
+void Display_Text_From_Memory(uint8_t *text){
+ lastText=text;
+ if(traceAttacks && (strstr((char *)text,"Hit!") || strstr((char *)text,"Missed!")))
+  ++attackResults;
+ if(traceAttacks && strcmp((char *)text,(char *)WeaponStats[WeaponIndex_Pistol].name)==0) {
+  check(attackReports<2);
+  reportColours[attackReports++]=TextColour;
+ }
+}
 void Set_Text_Colour_Bright_Green(void){TextColour=10;}
 void Draw_Top_Graphic_Sidebar(void){}
 static uint8_t randomByte=5;
@@ -165,6 +189,58 @@ int main(void)
  Combat_Mechanics(FALSE);check(Characters[8].name==Character_Dead && Characters[8].health==0);
  check(CombatantCasualtyFlags[16] && !CombatantActive[16] && MapEffectSpriteIndex[0]==Sprite_Impact_Small);
  check(CombatWeaponTarget[4*CombatWeaponTargetSlots]==255);
+ /* Presentation order must be report A/animation A/report B/animation B,
+  * not both reports followed by both animations. Exercise production effects
+  * with graphics and messages enabled (the earlier tests used messages off). */
+ for(unsigned verbosity=CombatMessage_Brief;verbosity<=CombatMessage_Verbose;++verbosity)
+ for(unsigned roll=0;roll<=5;roll+=5) {
+  prepare(4,16);CombatDisplayGraphics=1;CombatMessageVerbosity=verbosity;randomByte=roll;
+  CombatWeaponTarget[16*CombatWeaponTargetSlots]=4;
+  traceAttacks=1;attackReports=attackResults=attackAnimations=0;
+  Combat_Mechanics(FALSE);
+  traceAttacks=0;
+  check(attackReports==2 && attackAnimations==2);
+  check(reportColours[0]==EGA_BrightWhite && reportColours[1]==EGA_BrightYellow);
+ }
+ /* Slice simultaneity: both mortally wounded infantry commit their shots
+  * before casualty removal, including when Jason's death ends combat. */
+ prepare(4,16);Characters[0].health=Characters[8].health=1;
+ CombatWeaponTarget[16*CombatWeaponTargetSlots]=4;
+ Combat_Mechanics(FALSE);
+ check(Characters[0].health==0 && Characters[8].health==0);
+ check(!CombatantActive[4] && !CombatantActive[16]);
+ /* Both Mechs fire even when the lower-ID shot destroys the enemy first.
+  * A second weapon cannot fire in a subsequent slice after destruction. */
+ prepare(0,12);
+ CombatWeaponTarget[12*CombatWeaponTargetSlots]=0;
+ for(unsigned record=0;record<=4;record+=4) {
+  ((uint8_t *)&Mechs[record])[20]=0;
+  ((uint8_t *)&Mechs[record])[31]=0;
+  Mechs[record].criticalSlots[1]=Mech_Small_Laser;
+  Mechs[record].currentAmmo[1]=10;
+ }
+ CombatWeaponTarget[0*CombatWeaponTargetSlots+1]=12;
+ CombatWeaponTarget[12*CombatWeaponTargetSlots+1]=0;
+ Combat_Mechanics(FALSE);
+ check(Mechs[0].currentAmmo[0]==9 && Mechs[4].currentAmmo[0]==9);
+ check(Mechs[0].currentAmmo[1]==10 && Mechs[4].currentAmmo[1]==10);
+ check(Mechs[0].name[0]==MECH_Destroyed && Mechs[4].name[0]==MECH_Destroyed);
+ check(!CombatantActive[0] && !CombatantActive[12]);
+ /* A destroyed enemy still has a committed missile attack. With graphics
+  * enabled its projectile must finish, using the pre-casualty position. */
+ prepare(0,12);CombatDisplayGraphics=1;
+ Characters[Character_Jason].mechAssignment=0;
+ Mechs[4].criticalSlots[0]=Mech_SRMissile2;
+ CombatWeaponTarget[12*CombatWeaponTargetSlots]=0;
+ ((uint8_t *)&Mechs[4])[20]=0;((uint8_t *)&Mechs[4])[31]=0;
+ CombatantVisibleOnScreen[0]=CombatantVisibleOnScreen[12]=TRUE;
+ CombatantScreenPixelX[0]=160;CombatantScreenPixelY[0]=80;
+ CombatantScreenPixelX[12]=192;CombatantScreenPixelY[12]=80;
+ refreshVisibility=1;
+ Combat_Mechanics(FALSE);
+ refreshVisibility=0;
+ check(Mechs[4].name[0]==MECH_Destroyed && !CombatantActive[12]);
+ check(Mechs[4].currentAmmo[0]==9);
  /* Mech Small Laser: ammo once, facing/12-roll location20, damage3. */
  prepare(0,12);Combat_Mechanics(FALSE);
  check(Mechs[0].currentAmmo[0]==9 && ((uint8_t *)&Mechs[4])[20]==97);

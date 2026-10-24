@@ -6,7 +6,7 @@
  * EGA adapter2, selected by retained Setup_Game. Removed adapter1 stack-phase
  * redraw behaviour is NOT implemented/certified. State cleanup is unconditional
  * even with graphics disabled. BYTE and WORD storage remains original-width. */
-void Combat_AudioVisual_Effects(uint16_t ShooterId, uint16_t TargetCombatantId, uint16_t WeaponIndex, uint16_t AttackDirection, uint16_t PlayTargetImpactStream, uint16_t TargetPersonnelDead, uint16_t TargetMechDestroyed, uint16_t TargetRecordId, uint16_t AttackApplied, uint8_t *SavedCombatMap)
+static void Combat_Effects_Core(uint16_t ShooterId, uint16_t TargetCombatantId, uint16_t WeaponIndex, uint16_t AttackDirection, uint16_t PlayTargetImpactStream, uint16_t TargetPersonnelDead, uint16_t TargetMechDestroyed, uint16_t TargetRecordId, uint16_t AttackApplied, uint8_t *SavedCombatMap, uint16_t PresentAttack)
 {
 
 	uint16_t SavedShooterFrame=0; /* Sol: used only after native Mech branch assigns it. */
@@ -14,7 +14,7 @@ void Combat_AudioVisual_Effects(uint16_t ShooterId, uint16_t TargetCombatantId, 
 
 	uint16_t AnimationScene = AnimationO00_MechStartUp;
 
-	if (CombatDisplayGraphics == FALSE
+	if (PresentAttack == FALSE || CombatDisplayGraphics == FALSE
 	 || MainCharactersAlive == FALSE)
 	{
 Remove_Casualties:
@@ -110,7 +110,7 @@ Remove_Casualties:
 			CombatantPackedX[TargetCombatantId] = 0xFFFF;
 			CombatantActive[TargetCombatantId] = FALSE;
 		}
-		if (CombatDisplayGraphics != FALSE)
+		if (PresentAttack && CombatDisplayGraphics != FALSE)
 			CombatantAnimationSelector[ShooterId] = 0xFF;
 
 		return;
@@ -351,4 +351,21 @@ Restore_Shooter_Frame:
 		|| (ShooterId >= Enemy_All_CombatantId_Range_First && ShooterId < Enemy_Infantry_CombatantId_Range_First))
 		CombatantSpriteFrame[ShooterId] = (uint8_t)SavedShooterFrame;
 	goto Remove_Casualties;
+}
+
+void Combat_AudioVisual_Effects(uint16_t shooter, uint16_t target, uint16_t weapon,
+    uint16_t direction, uint16_t impact, uint16_t personnelDead,
+    uint16_t mechDestroyed, uint16_t record, uint16_t applied, uint8_t *map)
+{
+    Combat_Effects_Core(shooter, target, weapon, direction, impact,
+        personnelDead, mechDestroyed, record, applied, map, TRUE);
+}
+
+/* Deferred slice damage has already presented every shot. Retire casualties
+ * without starting another projectile or hiding a still-committed shooter. */
+void Combat_Remove_Slice_Casualties(uint16_t target, uint16_t personnelDead,
+    uint16_t mechDestroyed, uint16_t record, uint8_t *map)
+{
+    Combat_Effects_Core(0, target, 0, 0, 0, personnelDead, mechDestroyed,
+        record, FALSE, map, FALSE);
 }

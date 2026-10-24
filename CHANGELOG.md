@@ -6,6 +6,24 @@ do not identify an original DOS release.
 
 ## Unreleased
 
+- Fixed a hang when a destroyed enemy still had a committed missile attack:
+  all slice firing animations now finish before damage and casualty removal,
+  keeping projectile endpoints valid. Casualty cleanup no longer replays
+  weapon animations. Added a graphics-enabled destruction regression test
+  with renderer-like visibility refresh and a timeout guard.
+
+- Fixed simultaneous-slice combat presentation displaying every attack report
+  before any firing animation. Each queued attack now owns its message text
+  and replays its report, hit/miss result, hit location, and text colour with
+  that attack's damage and animation rather than during the roll phase.
+
+- Combat attacks now resolve simultaneously within each movement/fire slice:
+  all eligible units select and roll one attack before damage, casualties,
+  ejections, or terrain effects are applied. A unit destroyed in that slice
+  still fires its committed shot, but cannot act in later slices. Movement
+  timing and weapon-slot priority are unchanged. This intentionally changes
+  original behavior and removes the lower-combatant-ID first-kill advantage.
+
 - Added a complete, original 20-frame HBK-4G world/combat sprite bank with
   a larger right-shoulder cannon, narrower shoulders, articulated limbs and
   forward-facing boots. Native EGA sprites are embedded in the runtime and

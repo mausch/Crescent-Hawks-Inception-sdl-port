@@ -790,6 +790,9 @@ void Combat_AudioVisual_Effects(uint16_t shooterId,uint16_t targetCombatantId,
     uint16_t weaponIndex,uint16_t attackDirection,uint16_t playTargetImpactStream,
     uint16_t targetPersonnelDead,uint16_t targetMechDestroyed,uint16_t targetRecordId,
     uint16_t attackApplied,uint8_t *savedCombatMap); /*1AE8:12C7..1E45, EGA2*/
+void Combat_Remove_Slice_Casualties(uint16_t targetCombatantId,
+    uint16_t targetPersonnelDead,uint16_t targetMechDestroyed,
+    uint16_t targetRecordId,uint8_t *savedCombatMap);
 int16_t Word_Absolute(int16_t value); /*207F:3C6C*/
 extern uint8_t CombatSavedFacing[AllCombatantCount]; /*3092:45B6*/
 enum { MainCharacterCount=2,CombatTargetIdMask=0x7F,

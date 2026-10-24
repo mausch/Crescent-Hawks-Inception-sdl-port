@@ -1,4 +1,9 @@
 #include "game.h"
+#include "combat_slice.h"
+
+/* The roll phase records presentation; only the application phase displays it. */
+#define Combat_CombatMessageVerbosityFilter(text) Combat_Queue_Slice_Message(&PendingAttack, (text))
+#define Combat_DisplayText_ArmourHitLocation(offset) Combat_Queue_Slice_Location(&PendingAttack, (offset))
 
 /* Sol: complete original1AE8:000C..12C6 template conversion. Native entry
  * Incidental first-use effects flag residue is normalized to no impact;
@@ -133,6 +138,8 @@ void Combat_Mechanics(uint16_t PrearrangedEncounter)
 				Draw_Menu_MultiSelect();
 				EGA_DrawBox_Wrapper();
 			}
+			CombatSliceAttack SliceAttacks[AllCombatantCount];
+			uint16_t SliceAttackCount = 0;
 			uint8_t CombatantId = 0x00;
 
 			while (CombatantId < AllCombatantCount)
@@ -146,8 +153,7 @@ void Combat_Mechanics(uint16_t PrearrangedEncounter)
 						MechDestroyedFlag = FALSE;
 						CombatNotificationLatch = FALSE;
 
-						uint16_t TargetMechDestroyed = FALSE; // Sol: native BP-3A WORD.
-						uint16_t TargetPersonnelDead = FALSE; // Sol: native BP-2C WORD.
+						CombatSliceAttack PendingAttack = {0};
 						uint16_t PlayTargetImpactStream = 0x00; // Sol: native BP-6 WORD, impact stream flag.
 						uint8_t TargetCombatantId = CombatWeaponTarget[(CombatantId * CombatWeaponTargetSlots) + WeaponSlot];
 
@@ -313,16 +319,8 @@ Restore_Attack_Anchor:
 									if (CurrentHeat >= MechHeatToHitPenaltyThird) ++AttackTargetNumber; // Sol: heat 17: cumulative penalty +3.
 									if (CurrentHeat >= MechHeatToHitPenaltyFourth) ++AttackTargetNumber; // Sol: heat 24: cumulative penalty +4.
 								}
-								if (CombatMessageVerbosity != CombatMessage_None) //w2E38 - Combat Message Verbosity Setting [Menu option]
-								{
-									Menu_Memory_Variables(0x04);
-									Draw_Top_Graphic_Sidebar();
-								}
-
-								TextColour = EGA_BrightWhite; //w37FE - Text Colour in EGA Palette = 0x0F White
-
-								if (CombatantId >= Enemy_All_CombatantId_Range_First) //0x0C
-									TextColour = EGA_BrightYellow; //w37FE - Text Colour in EGA Palette = 0x0E Bright Yellow
+								PendingAttack.textColour = CombatantId >= Enemy_All_CombatantId_Range_First
+									? EGA_BrightYellow : EGA_BrightWhite;
 
 								// Sol: 1AE8:0460..071B. Native names are FAR string pointers,
 								// not WORD values or addresses of pointer-table cells. Name IDs use CBW.
@@ -467,43 +465,21 @@ Restore_Attack_Anchor:
 											&& ((WeaponIndex >= WeaponIndex_MediumLaser && WeaponIndex <= WeaponIndex_PPC) || WeaponIndex == WeaponIndex_Inferno))
 										{
 											if (MapTileUnderCombatant[TargetCombatantId] >= 0x10 && MapTileUnderCombatant[TargetCombatantId] <= 0x3F) // Sol: original fire-eligible tile interval; individual tile meanings not established here.
-												Combat_Random_CreateFire(TargetCombatantId, 0xFFFF, 0); // Sol: ASM pushes WORD -1 sentinel (not BYTE FF), followed by zero.
+												{ PendingAttack.fire = TRUE; PendingAttack.fireX = 0xFFFF; PendingAttack.fireY = 0; } // Sol: ASM pushes WORD -1 sentinel (not BYTE FF), followed by zero.
 										}
 									}
 									else
 										Combat_CombatMessageVerbosityFilter((uint8_t *)"\r\006\rHit!"); // Sol: native control bytes DS3EDB:3ED6.
 
-									// Sol: 08F1 tests OLD repeat count; Reko's equality-to-class loop was wrong.
-									// Sol: damage is rolled ONCE and then mutated by armour across repeats.
-									// Sol: no early break when health reaches zero; preserve the original behavior.
-									while (AttacksRemaining != 0)
-									{
-										--AttacksRemaining;
+									// Commit repeats now; armour and health changes wait until
+									// every unit has rolled its attack for this slice.
+									PendingAttack.personnel = TRUE;
+									PendingAttack.damage = PersonnelDamage;
+									PendingAttack.repeats = AttacksRemaining;
+									if (AttacksRemaining != 0) {
 										AttackApplied = TRUE;
-										PlayTargetImpactStream = 1; // Sol: BP-6 marks an applied attack for downstream effects.
-										int16_t ArmourRemaining = (int8_t)Characters[TargetRecordId].armourValue; // Sol: C622 BYTE loaded with CBW.
-										if (ArmourRemaining != 0)
-										{
-											if (ArmourRemaining >= (PersonnelDamage >> 1))
-											{
-												PersonnelDamage >>= 1; // Sol: floor half; this SAME value reduces armour and health.
-												Characters[TargetRecordId].armourValue -= (uint8_t)PersonnelDamage;
-											}
-											else
-											{
-												PersonnelDamage -= ArmourRemaining; // Sol: insufficient armour absorbs its remaining value.
-												Characters[TargetRecordId].armourValue = 0;
-											}
-										}
-										int16_t HealthRemaining = (int8_t)Characters[TargetRecordId].health; // Sol: C623 BYTE loaded with CBW.
-										if (HealthRemaining <= PersonnelDamage)
-											Characters[TargetRecordId].health = 0;
-										else
-											Characters[TargetRecordId].health -= (uint8_t)PersonnelDamage;
+										PlayTargetImpactStream = 1;
 									}
-									// Sol: 0915 only sets the death flag; actual removal/messages occur downstream.
-									if (Characters[TargetRecordId].health == 0)
-										TargetPersonnelDead = TRUE;
 								}
 								else
 								{
@@ -558,7 +534,7 @@ Restore_Attack_Anchor:
 											{
 												if (MapTileUnderCombatant[TargetCombatantId] >= 0x10 && MapTileUnderCombatant[TargetCombatantId] <= 0x3F)
 												{
-													Combat_Random_CreateFire(TargetCombatantId, 0, 0xFFFF); // Sol: native WORD Y offset-1, not BYTE255.
+													{ PendingAttack.fire = TRUE; PendingAttack.fireX = 0; PendingAttack.fireY = 0xFFFF; } // Sol: native WORD Y offset-1, not BYTE255.
 												}
 											}
 											if ((TargetCombatantId < Friendly_Infantry_Combatant_Range_First
@@ -572,84 +548,24 @@ Restore_Attack_Anchor:
 													ImpactPackedY = ImpactYBeforeOffset - 0x01 & ~0x0F80;
 
 												//0x7F - Impact Large
-												Register_Persistent_Map_Effect(Sprite_Impact_Large, CombatantPackedX[TargetCombatantId], ImpactPackedY); //t4004 - CharacterPosX_Mech
+												PendingAttack.mapImpact = TRUE;
+												PendingAttack.impactX = CombatantPackedX[TargetCombatantId];
+												PendingAttack.impactY = ImpactPackedY; //t4004 - CharacterPosX_Mech
 											}
 										}
-										// Sol: Reconstructed damage application 1AE8:0B43..0CD2.
-										// Sol: Hit location is a raw byte OFFSET within target Mech record.
-										uint8_t *TargetRecord = (uint8_t *)&Mechs[TargetRecordId];
-										while (RemainingDamage != 0 && TargetRecord[0] != 0xFF)
-										{
-											if (WeaponIndex == WeaponIndex_Inferno)
-											{
-												MechInfernoRoundsRemaining[TargetRecordId] = 3;
-												RemainingDamage = 0; //Sol: inferno sets heat, no ordinary mech damage
-												// Sol:0B60 also clears BP-34, but the Mech path never reads
-												// Sol:that infantry-repeat word again. Its loop tests BP-7C
-												// Sol:at0CCA; there is no missing Mech attack-count loop here.
-											}
-											uint16_t Available = TargetRecord[HitLocationOffset];
-											if (RemainingDamage > Available)
-											{
-												RemainingDamage -= Available;
-												TargetRecord[HitLocationOffset] = 0;
-												if (Available != 0 && (HitLocationOffset == 0x1C || HitLocationOffset == 0x21))
-													ShowArmShotOffAnimation = 1;
-												if (HitLocationOffset >= 0x1C && HitLocationOffset <= 0x23)
-													Combat_Critical_Mech_Damage(TargetRecordId, HitLocationOffset);
-												HitLocationOffset = Combat_StructureHit(HitLocationOffset);
-												if (MechDestroyedFlag != 0)
-												{
-													Combat_Mech_Eject(TargetCombatantId);
-													CombatNotificationLatch = 0;
-													TargetMechDestroyed = 1;
-												}
-												// Sol: 1122's unspecified return on fatal 1F/20 is not
-												// Sol: dereferenced again: ejection marks record Name FF,
-												// Sol: and this loop checks that FIRST (0B43).
-											}
-											else
-											{
-												if (RemainingDamage == Available && (HitLocationOffset == 0x1C || HitLocationOffset == 0x21))
-													ShowArmShotOffAnimation = 1;
-												TargetRecord[HitLocationOffset] -= (uint8_t)RemainingDamage;
-												RemainingDamage = 0;
-												if (HitLocationOffset >= 0x1C && HitLocationOffset <= 0x23)
-													Combat_Critical_Mech_Damage(TargetRecordId, HitLocationOffset);
-												if ((HitLocationOffset == 0x1F || HitLocationOffset == 0x20) && TargetRecord[HitLocationOffset] == 0)
-												{
-													Combat_Mech_Eject(TargetCombatantId);
-													CombatNotificationLatch = 0;
-													TargetMechDestroyed = 1;
-													if (TargetCombatantId == 0 && PrearrangedEncounter != 0)
-														Combat_Clear_Movement_Plans();
-												}
-											}
-										}
+										PendingAttack.damage = RemainingDamage;
+										PendingAttack.location = HitLocationOffset;
 									}
 								}
 
-								Combat_AudioVisual_Effects(CombatantId, TargetCombatantId, WeaponIndex, AttackDirection, PlayTargetImpactStream, TargetPersonnelDead, TargetMechDestroyed, TargetRecordId, AttackApplied, CombatSavedTileCache); // Sol: 0CD3 pushes FAR buffer address 3092:4314, not its first BYTE value.
-
-								if (ShowArmShotOffAnimation != FALSE)
-								{
-									CombatNotificationLatch = FALSE;
-
-									if (CombatDisplayGraphics != CombatGraphics_None  //w2E3A - See Combat Graphics [Menu Option]
-									&& (TargetCombatantId != 13 // Sol: native BP-28 target, arena spectator actor13.
-									|| (ArenaRentalMechMode == FALSE)))
-									{
-										Display_Animation_Scene(AnimationO16_WaspLostArm, AnimationPlayback_RestoreGameView); //0x10
-									}
-								}
-
-								if (CombatNotificationLatch != FALSE
-								&& (int16_t)(int8_t)Characters[Character_Jason].mechAssignment == TargetRecordId // Sol: native C620 CBW before WORD comparison.
-								&& CombatDisplayGraphics != CombatGraphics_None) //w2E3A - See Combat Graphics [Menu Option]
-								{
-									Display_Animation_Scene(AnimationO05_NeuroSmoking, AnimationPlayback_RestoreGameView); //0x05
-								}
-								GameSpeed_RateControl();
+								PendingAttack.attacker = CombatantId;
+								PendingAttack.target = TargetCombatantId;
+								PendingAttack.weapon = WeaponIndex;
+								PendingAttack.direction = AttackDirection;
+								PendingAttack.record = TargetRecordId;
+								PendingAttack.impact = PlayTargetImpactStream;
+								PendingAttack.applied = AttackApplied;
+								SliceAttacks[SliceAttackCount++] = PendingAttack;
 								uint16_t WeaponTargetOffset = WeaponSlot + (CombatantId * CombatWeaponTargetSlots);
 
 								CombatWeaponTarget[WeaponTargetOffset] |= 0x80;
@@ -669,6 +585,16 @@ Advance_Weapon_Slot:
 				CombatantId++;
 			}
 
+
+			/* Present against the unchanged post-movement world. Casualty
+			 * removal must not invalidate a later shooter's coordinates. */
+			for (uint16_t attack = 0; attack < SliceAttackCount; ++attack)
+				Combat_Present_Slice_Attack(&SliceAttacks[attack]);
+
+			/* Apply every committed attack, even if an earlier result kills
+			 * its shooter or ends the encounter. Only the next slice stops. */
+			for (uint16_t attack = 0; attack < SliceAttackCount; ++attack)
+				Combat_Apply_Slice_Attack(&SliceAttacks[attack], PrearrangedEncounter);
 
 			// Sol: Reconstructed 1AE8:0F03..0FF5: retire completed FIRST
 			// Sol: destination order for friendly actors, not generated step pairs.
@@ -700,3 +626,6 @@ Advance_Weapon_Slot:
 		Combat_Mech_HeatLevels(SuccessfulMovementSteps);
 	}
 }
+
+#undef Combat_CombatMessageVerbosityFilter
+#undef Combat_DisplayText_ArmourHitLocation
