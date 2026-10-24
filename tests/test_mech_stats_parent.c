@@ -12,7 +12,7 @@
  * Asset decoding/upload, text display and hardware rectangles are isolated. */
 static jmp_buf firstRetrace;
 static unsigned loaded,decoded,uploaded,blitted,rectangles,texts;
-static unsigned recordId;
+static unsigned recordId,inspectingHunchback;
 static unsigned continuation,retraces,paletteUpdates,paletteRestores,keyReads,pendingReads;
 static uint8_t startingPaletteColour;
 static struct { char text[80]; uint16_t column,row,colour; } output[64];
@@ -31,12 +31,16 @@ uint16_t Load_File_To_Memory(const uint8_t *filename,uint8_t *memory)
 void Decompress_File_Into_Memory(uint8_t *source,uint8_t *destination)
 {
     check(source==BTStatsOrBldMemory && destination==GraphicsFileWorkspace);
-    check(GraphicsCompatibilityFlag==FALSE); ++decoded;
+    check(GraphicsCompatibilityFlag==FALSE);
+    memset(destination,0x5a,PackedGraphicsOutputBytes); ++decoded;
 }
 void DrawCall_Image_To_VGA_Memory(uint8_t *image,uint16_t destination)
 {
     check(image==GraphicsFileWorkspace && destination==EgaSceneStagingSegment);
-    check(decoded==1); ++uploaded;
+    check(decoded==1);
+    check(image[60]==(inspectingHunchback?0x99:0x5a));
+    check(image[0]==0x5a && image[24*PackedGraphicsRowBytes+59]==0x5a);
+    ++uploaded;
 }
 void EGA_DrawBox_Operation(EgaMemoryAddress source,EgaMemoryAddress destination,
     uint16_t x,uint16_t y,uint16_t width,uint16_t height)
@@ -89,7 +93,9 @@ static void run(unsigned id,int heat,unsigned cached,unsigned hasRider)
     uint16_t combatantId=(uint16_t)(id<LanceSize?id:id+8);
     Mech *mech=&Mechs[id];
     memset(mech,0,sizeof *mech);
-    memcpy(mech->name,"CommandoLong",13);
+    for(unsigned other=0;other<MechRecordCount;++other)
+        memset(Mechs[other].name,0,MechNameLength);
+    memcpy(mech->name,inspectingHunchback?"HUNCHBACK      ":"CommandoLong",inspectingHunchback?16u:13u);
     mech->tonnage=25; mech->pilotId=2; mech->riderId=(uint8_t)(hasRider?3:MECH_NoRider);
     if(id>=LanceSize) { mech->pilotId=255; mech->riderId=254; } /*Unknown branch must not dereference crew*/
     mech->engineHeatSinks=8;
@@ -114,7 +120,7 @@ static void run(unsigned id,int heat,unsigned cached,unsigned hasRider)
     check(recordId==id && loaded==(cached?0u:1u) && BTStatsAssetLoaded==TRUE);
     check(CurrentMenuLayoutIndex==4 && TextColour==EGA_BrightYellow);
     check(MechHeatLevel[id]==(heat<0?0:heat>30?30:heat));
-    find(6,0,"Commando"); find(6,1,"25");
+    find(6,0,inspectingHunchback?"HUNCHBAC":"Commando"); find(6,1,"25");
     if(id<LanceSize) {
         find(6,2,(char *)CharacterNames[0]);
         find(6,3,hasRider?(char *)CharacterNames[1]:"None");
@@ -133,10 +139,12 @@ static void run(unsigned id,int heat,unsigned cached,unsigned hasRider)
 int main(void)
 {
     static const int heats[]={-128,-1,0,10,30,31,127};
-    for(unsigned id=0;id<MechRecordCount;++id)
+    for(inspectingHunchback=0;inspectingHunchback<2;++inspectingHunchback)
+      for(unsigned id=0;id<MechRecordCount;++id)
         for(unsigned h=0;h<sizeof heats/sizeof heats[0];++h)
             for(unsigned cached=0;cached<=1;++cached)
                 for(unsigned hasRider=0;hasRider<=1;++hasRider) run(id,heats[h],cached,hasRider);
+    inspectingHunchback=0;
     /* Continue the actual parent beyond the former guard: automatic600-retrace
      * dismissal and interactive input restore the palette and consume one key.
      * Hardware and asset boundaries stay isolated; this is not pixel validation. */
@@ -150,6 +158,6 @@ int main(void)
         check(paletteUpdates==(mode==1?(unsigned)(BTStatsAutoDismissRedraws/BTStatsPaletteRefreshRedraws):0u));
         check(paletteRestores==1 && keyReads==1 && pendingReads==(mode==1?0u:3u));
     }
-    puts("Original stats parent: 224 first-frame probes and portable palette/input continuation passed.");
+    puts("Original stats parent: original/Hunchback first-frame probes and portable palette/input continuation passed.");
     return 0;
 }

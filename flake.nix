@@ -106,6 +106,7 @@
             nativeBuildInputs = [ spritePython ];
           } ''
             python ${self}/tools/generate_hunchback_sprites.py --check
+            python ${self}/tools/generate_hunchback_inspection.py --check
             touch "$out"
           '';
         });

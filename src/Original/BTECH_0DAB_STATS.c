@@ -50,6 +50,13 @@ void Examine_Screen_BTSTATS_CMP(uint16_t CombatantId)
 	// Sol: intentionally omitted from this maintained EGA-only transcription.
 	GraphicsCompatibilityFlag = FALSE;
 	Decompress_File_Into_Memory(BTStatsOrBldMemory, GraphicsFileWorkspace);
+
+	// Friendly IDs bind directly; enemy combatants 12..15 bind to Mechs[4..7].
+	uint16_t MechRecordId = CombatantId;
+	if ((int16_t)MechRecordId >= Enemy_All_CombatantId_Range_First)
+		MechRecordId = (uint16_t)(MechRecordId -
+            (Enemy_All_CombatantId_Range_First - Enemy_Mech_Record_First));
+	Patch_Hunchback_Inspection(GraphicsFileWorkspace, &Mechs[MechRecordId]);
 	DrawCall_Image_To_VGA_Memory(GraphicsFileWorkspace, EgaSceneStagingSegment);
 	EGA_DrawBox_Operation(Staging, Screen, 0, 0, EgaFramebufferRowBytes, EgaScreenHeight); // Sol: ASM pushes explicit FAR offsets0 with sourceA800/destinationA000.
 
@@ -57,13 +64,6 @@ void Examine_Screen_BTSTATS_CMP(uint16_t CombatantId)
 	// Sol: Rider, and Armament/Loc labels. One text call lays out the whole panel.
 	Draw_EGA_Text_To_Screen((uint8_t *)"Type :\rTons :\rPilot:\rRider:\r\rArmament   Loc",
 		0x00, 0x00, EGA_BrightWhite, EGA_Black);
-
-	// Sol: Friendly combatants 0..3 already match Mechs[0..3]. Enemy combatants
-	// Sol: 12..15 map to live enemy records Mechs[4..7] by subtracting eight.
-	uint16_t MechRecordId = CombatantId;
-	if ((int16_t)MechRecordId >= Enemy_All_CombatantId_Range_First)
-		MechRecordId = (uint16_t)(MechRecordId -
-            (Enemy_All_CombatantId_Range_First - Enemy_Mech_Record_First));
 
 	Append_Large_Text_To_Memory(DynamicString,
 		&Mechs[MechRecordId].name[0]);
@@ -274,8 +274,8 @@ void Examine_Screen_BTSTATS_CMP(uint16_t CombatantId)
 				CurrentStructure = ((uint8_t *)&Mechs[MechRecordId])[StructureOffset];
 
 			Draw_Mech_Protection_Gauge(
-				MechStatusGaugeX[ArmourLocation],
-				MechStatusGaugeBottomY[ArmourLocation],
+				Resolve_Mech_Status_Gauge_X(&Mechs[MechRecordId], ArmourLocation),
+				Resolve_Mech_Status_Gauge_Bottom_Y(&Mechs[MechRecordId], ArmourLocation),
 				Mechs[MechRecordId].currentArmour[ArmourLocation],
 				CurrentStructure);
 		}

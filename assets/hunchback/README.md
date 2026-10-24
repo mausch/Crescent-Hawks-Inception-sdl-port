@@ -34,6 +34,44 @@ cockpit. Stippling is applied before articulation so it moves with the parts.
 Opaque black uses index **1**; index **0** is reserved for transparency. No game
 palette registers are changed, so terrain and other sprites are not recoloured.
 
+## HBK-4G inspection paper doll
+
+- `inspection.png`: native 320×200 indexed authoring canvas; only the documented
+  patch rectangles are used at runtime (black outside them is not drawn).
+- `inspection-preview.png`: nearest-neighbour 3× preview.
+- `inspection.ase`: editable LibreSprite copy of the indexed canvas.
+- [`tools/generate_hunchback_inspection.py`](../../tools/generate_hunchback_inspection.py):
+  canonical pixel drawing, palette, patch bounds, previews and embedded encoder.
+
+The front view has the AC/20 hump on viewer **left**; the rear inset has it on
+viewer **right**. Original-style grey armour, white bevels, dark panel seams,
+blue grid and yellow/red gauge frames use the existing inspection palette.
+Owner-supplied [HBK-4G reference](https://www.loothoarder.com/wp-content/uploads/2026/06/imgopt_24203_1781040614_0_0.jpg)
+was used for the chassis silhouette, not copied into the artwork or distributed.
+
+The port patches the freshly decompressed `BTSTATS.CMP` image only when the live
+record has the Hunchback name, for friendly and enemy inspections alike, and
+positions the Hunchback's live protection gauges below the high AC/20 housing,
+tucked head and small laser and along the opened forearms. It preserves the
+original labels, heat display, status pips, live armour/structure scaling and
+palette cycling. The original CMP cache and files are never modified; other
+chassis retain their original illustration and gauge table.
+
+Regenerate/check with:
+
+```sh
+nix develop --command python tools/generate_hunchback_inspection.py
+nix develop --command python tools/generate_hunchback_inspection.py --check
+nix shell nixpkgs#libresprite --command env SDL_VIDEODRIVER=dummy \
+  libresprite --batch assets/hunchback/inspection.png --save-as assets/hunchback/inspection.ase
+```
+
+The generator is authoritative: transfer desired LibreSprite edits back to its
+pixel definitions before regenerating. No original assets or image loader are
+needed to regenerate or use this art. Tests check packed-pixel patch bounds,
+unchanged labels/heat area, name selection, non-Hunchback fallback and both
+friendly/enemy record mapping through the real statistics parent.
+
 ## Native frame contract
 
 | Offsets | Body frames |
@@ -49,8 +87,9 @@ palette registers are changed, so terrain and other sprites are not recoloured.
 
 These match the original humanoid animation streams, including the poses reused
 by kicks. The original eight movement headings use these four visual directions.
-Shared hit effects, projectiles, wrecks, statistics illustration and cinematic
-animations are unchanged; this is the complete **world/combat body** sprite bank.
+Shared hit effects, projectiles, wrecks and cinematic animations are unchanged;
+this is the complete **world/combat body** sprite bank. The inspection screen
+has a separate chassis-specific illustration, described above.
 
 The embedded bank in `src/Original/BTECH_HUNCHBACK_ART.inc` contains twenty mutable
 292-byte sprites: four-byte header `(0,23,3,0)`, then scanline → eight-pixel cell →

@@ -548,6 +548,9 @@ extern uint8_t *CombatSpritePointers[CombatSpriteCount]; /*3092:39FA..3FD9 nativ
 /* Port-owned Hunchback art selected per mech record, without new saved IDs. */
 enum { HunchbackSpriteCount=20, HunchbackSpriteBytes=4+24*3*4 };
 uint8_t *Resolve_Mech_Combat_Sprite(uint16_t combatantId,uint16_t spriteId);
+void Patch_Hunchback_Inspection(uint8_t *image,const Mech *mech);
+uint16_t Resolve_Mech_Status_Gauge_X(const Mech *mech,uint16_t location);
+uint16_t Resolve_Mech_Status_Gauge_Bottom_Y(const Mech *mech,uint16_t location);
 extern uint8_t *TinylandTileset;
 void Setup_Game(void); /*0D27:0044*/
 void Startup_Print_Nul_String(uint8_t *text);
